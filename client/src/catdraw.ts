@@ -226,10 +226,19 @@ export function drawCat(ctx: CanvasRenderingContext2D, x: number, y: number, cat
     accessory(ctx, cat, 0, headY, facing)
   } else {
     // ---- side view (drawn facing right; flipped for left) ------------
-    tail(ctx, cat.color, -17, 4, phase)
-    ellipse(ctx, 0, 3, 20, 13)
+    // tail comes off the rear and arcs up-and-back
+    const tipX = -30 + wag(phase, 4), tipY = -26 + wag(phase, 4)
+    ctx.beginPath()
+    ctx.moveTo(-16, 6)
+    ctx.quadraticCurveTo(-30, 0, tipX, tipY)
+    ctx.lineWidth = 11; ctx.strokeStyle = INK; ctx.lineCap = 'round'; ctx.stroke()
+    ctx.lineWidth = 7; ctx.strokeStyle = cat.color; ctx.stroke()
+    ctx.beginPath(); ctx.arc(tipX, tipY, 6, 0, Math.PI * 2)
+    ctx.fillStyle = cat.color; ctx.fill()
+
+    ellipse(ctx, 0, 4, 18, 12)
     fillStroke(ctx, cat.color, 4)
-    bodyPattern(ctx, cat, 0, 3, 20, 13)
+    bodyPattern(ctx, cat, 0, 4, 18, 12)
     if (pose === 'walk') {
       ctx.lineWidth = 4; ctx.strokeStyle = INK
       const s1 = Math.sin(phase * 10), s2 = Math.sin(phase * 10 + Math.PI)
@@ -237,24 +246,25 @@ export function drawCat(ctx: CanvasRenderingContext2D, x: number, y: number, cat
         ctx.beginPath(); ctx.moveTo(lx, 12); ctx.lineTo(lx + sv * 4, 18); ctx.stroke()
       }
     }
-    ctx.beginPath(); ctx.arc(15, -8, 13, 0, Math.PI * 2)
+    ctx.beginPath(); ctx.arc(14, -10, 13, 0, Math.PI * 2)
     fillStroke(ctx, cat.color, 4)
-    ear(ctx, 8, -18, -1, cat.color)
-    ear(ctx, 17, -20, 1, cat.color)
+    // ears rake back over the head-top — one behind, one in front
+    ear(ctx, 7, -21, -1, cat.color)
+    ear(ctx, 15, -23, 1, cat.color)
     if (cat.pattern === 'tabby') {
       ctx.strokeStyle = dark; ctx.lineWidth = 2.4
       for (const s of [0, 1]) {
-        ctx.beginPath(); ctx.moveTo(10 + s * 5, -20); ctx.lineTo(11 + s * 5, -15); ctx.stroke()
+        ctx.beginPath(); ctx.moveTo(10 + s * 5, -22); ctx.lineTo(11 + s * 5, -17); ctx.stroke()
       }
     }
-    eyes(ctx, 15, -8, 5.5, blink, false)
-    ctx.beginPath(); ctx.moveTo(24.5, -3); ctx.lineTo(28.5, -4.5); ctx.lineTo(25.5, -0.5); ctx.closePath()
+    eyes(ctx, 15, -10, 5.5, blink, false)
+    ctx.beginPath(); ctx.moveTo(24.5, -5); ctx.lineTo(28.5, -6.5); ctx.lineTo(25.5, -2.5); ctx.closePath()
     fillStroke(ctx, '#f2a0b0', 2)
     ctx.lineWidth = 1.4; ctx.strokeStyle = INK
     for (let i = -1; i <= 1; i++) {
-      ctx.beginPath(); ctx.moveTo(22, -2 + i * 2); ctx.lineTo(33, -4 + i * 3.5); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(22, -4 + i * 2); ctx.lineTo(33, -6 + i * 3.5); ctx.stroke()
     }
-    accessory(ctx, cat, 15, -8, facing)
+    accessory(ctx, cat, 15, -10, facing)
   }
   ctx.restore()
 }
