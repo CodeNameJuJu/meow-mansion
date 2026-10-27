@@ -209,6 +209,9 @@ initInput(
 )
 
 canvas.addEventListener('mousemove', (e) => { mouse = { x: e.clientX, y: e.clientY } })
+canvas.addEventListener('wheel', (e) => {
+  cam.dist = Math.min(420, Math.max(120, cam.dist + e.deltaY * 0.35))
+})
 canvas.addEventListener('mousedown', (e) => {
   // clicking while laser mode is off = a casual paw tap toward that spot? keep it: pet?
   void e
@@ -338,9 +341,9 @@ function update(dt: number) {
   while (dyaw > Math.PI) dyaw -= Math.PI * 2
   while (dyaw < -Math.PI) dyaw += Math.PI * 2
   cam.yaw += dyaw * Math.min(1, dt * 4)
-  cam.focal = vw * 0.95
+  cam.focal = vw
   cam.cx0 = vw / 2
-  cam.hor = vh * 0.36
+  cam.hor = vh * 0.40
   cam.x = me.x - Math.cos(cam.yaw) * cam.dist
   cam.y = me.y - Math.sin(cam.yaw) * cam.dist
 

@@ -4,12 +4,13 @@
 
 export const cam = {
   x: 0, y: 0,       // world position
-  eyeH: 118,        // eye height above the floor
+  eyeH: 185,        // eye height above the floor
   yaw: 0,           // world angle the camera looks along
-  dist: 175,        // distance behind the cat
+  pitch: 0.5,       // look-down angle, radians
+  dist: 215,        // distance behind the cat
   focal: 700,       // px focal length, set from viewport
   cx0: 0,           // screen centre x
-  hor: 0,           // horizon line y on screen
+  hor: 0,           // projection centre y on screen
 }
 
 export const NEAR = 10
@@ -17,11 +18,15 @@ export const NEAR = 10
 export interface CamPt { cx: number; cy: number; cz: number }
 export interface ScreenPt { sx: number; sy: number; depth: number }
 
-/** world (x, y, z) -> camera space (right, up, forward). */
+/** world (x, y, z) -> camera space (right, up, forward), pitch applied. */
 export function toCam(x: number, y: number, z = 0): CamPt {
   const dx = x - cam.x, dy = y - cam.y
   const c = Math.cos(cam.yaw), s = Math.sin(cam.yaw)
-  return { cx: dx * -s + dy * c, cy: z - cam.eyeH, cz: dx * c + dy * s }
+  const cx = dx * -s + dy * c
+  const cy0 = z - cam.eyeH
+  const cz0 = dx * c + dy * s
+  const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch)
+  return { cx, cy: cy0 * cp + cz0 * sp, cz: -cy0 * sp + cz0 * cp }
 }
 
 export function project(x: number, y: number, z = 0): ScreenPt | null {
@@ -57,10 +62,15 @@ export function projPoly(pts: [number, number, number][]): ScreenPt[] | null {
 
 /** Unproject a screen point onto the z=0 floor plane (for the laser dot). */
 export function unproject(sx: number, sy: number): { x: number; y: number } | null {
-  const d = sy - cam.hor
-  if (d <= 4) return null // on/above the horizon — no floor there
-  const depth = (cam.eyeH * cam.focal) / d
-  const cx = ((sx - cam.cx0) * depth) / cam.focal
+  // screen point -> ray direction in camera space, then undo the pitch
+  const nx = (sx - cam.cx0) / cam.focal
+  const ny = (cam.hor - sy) / cam.focal // up component; positive looks up
+  const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch)
+  const cy = ny * cp - sp // unpitched: y = y'cos - z'sin
+  const cz = ny * sp + cp //            z = y'sin + z'cos
+  if (cy >= -0.001) return null // ray doesn't point at the floor
+  const t = cam.eyeH / -cy
+  const fx = nx * t, fz = cz * t
   const c = Math.cos(cam.yaw), s = Math.sin(cam.yaw)
-  return { x: cam.x + cx * -s + depth * c, y: cam.y + cx * c + depth * s }
+  return { x: cam.x + fx * -s + fz * c, y: cam.y + fx * c + fz * s }
 }

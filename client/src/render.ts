@@ -524,21 +524,14 @@ function segFlat(ctx: CanvasRenderingContext2D, a: [number, number, number], b: 
 // ----------------------------------------------------------------- render --
 
 export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
-  // sky — comic paper with a halftone band sinking toward the horizon
-  const vh = cam.hor / 0.36 // canvas height recovered from horizon fraction
+  // background — comic paper; with the pitched camera the world horizon sits
+  // off-screen, so anything past the house edge reads as page margin
   const vw = cam.cx0 * 2
+  const vh = cam.hor / 0.40
   ctx.fillStyle = '#f7f1de'
   ctx.fillRect(0, 0, vw, vh)
-  const grd = ctx.createLinearGradient(0, cam.hor - vh * 0.3, 0, cam.hor)
-  grd.addColorStop(0, 'rgba(255,214,140,0)')
-  grd.addColorStop(1, 'rgba(255,196,110,0.55)')
-  ctx.fillStyle = grd
-  ctx.fillRect(0, 0, vw, cam.hor)
-  ctx.save()
-  ctx.beginPath(); ctx.rect(0, 0, vw, cam.hor); ctx.clip()
   ctx.fillStyle = halftone(ctx, 'rgba(20,16,12,0.08)', 12, 1.6)
-  ctx.fillRect(0, 0, vw, cam.hor)
-  ctx.restore()
+  ctx.fillRect(0, 0, vw, vh)
 
   drawFloors(ctx, s)
 
