@@ -3,7 +3,7 @@
 // perspective camera in cam.ts. Walls and furniture become shaded quads, cats
 // and objects become scaled billboards, and everything sorts by real depth.
 
-import { INK, fillStroke, halftone, promptBubble } from './comic'
+import { INK, fillStroke, halftone, promptBubble, ellipse } from './comic'
 import { ROOMS, WALLS, FURNITURE, OBJECTS, furnitureAt, type Furniture, type InteractTarget, type Rect } from './house'
 import { cam, project, projPoly, type ScreenPt } from './cam'
 import { drawCat } from './catdraw'
@@ -28,6 +28,8 @@ export interface RenderState {
   toggles: Record<string, boolean>
   damageCouch: number
   lasers: { x: number; y: number }[]
+  mouse: { x: number; y: number } | null
+  catnip: { x: number; y: number } | null
   time: number
   nearBirdbath: number
   interact: InteractTarget | null
@@ -566,6 +568,52 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
     drawFurniture(ctx, out, f, s)
   }
   for (const o of OBJECTS) drawObject(ctx, out, o, s)
+
+  // the mouse — chaseable critter, scurrying billboard
+  if (s.mouse) {
+    const p = project(s.mouse.x, s.mouse.y, 0)
+    if (p) {
+      const k = sc(p.depth)
+      out.push({
+        depth: p.depth,
+        draw: () => {
+          ctx.save(); ctx.translate(p.sx, p.sy); ctx.scale(k, k)
+          ctx.beginPath(); ctx.moveTo(-8, -2); ctx.quadraticCurveTo(-18, -5, -22, 2)
+          ctx.lineWidth = 2.5; ctx.strokeStyle = '#9a9aa2'; ctx.lineCap = 'round'; ctx.stroke()
+          ellipse(ctx, 0, -4, 9, 6); fillStroke(ctx, '#9a9aa2', 2.5)
+          ctx.beginPath(); ctx.arc(4, -10, 3.4, 0, Math.PI * 2); fillStroke(ctx, '#9a9aa2', 2)
+          ctx.beginPath(); ctx.arc(4, -10, 1.6, 0, Math.PI * 2); ctx.fillStyle = '#f2a0b0'; ctx.fill()
+          ctx.beginPath(); ctx.arc(8, -5, 1.4, 0, Math.PI * 2); ctx.fillStyle = INK; ctx.fill()
+          ctx.restore()
+        },
+      })
+    }
+  }
+
+  // catnip — sparkly leaf worth fighting over
+  if (s.catnip) {
+    const p = project(s.catnip.x, s.catnip.y, 0)
+    if (p) {
+      const k = sc(p.depth)
+      const tw = Math.abs(Math.sin(s.time * 6))
+      out.push({
+        depth: p.depth,
+        draw: () => {
+          ctx.save(); ctx.translate(p.sx, p.sy); ctx.scale(k, k)
+          ctx.beginPath(); ctx.moveTo(0, 2); ctx.quadraticCurveTo(12, -4, 8, -16); ctx.quadraticCurveTo(-2, -8, 0, 2)
+          fillStroke(ctx, '#5db35a', 2.5)
+          ctx.lineWidth = 1.6; ctx.strokeStyle = '#3a7a38'
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(7, -13); ctx.stroke()
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5
+          for (const [sx, sy] of [[-6, -14], [12, -20]] as const) {
+            ctx.beginPath(); ctx.moveTo(sx, sy - 3 - tw * 2); ctx.lineTo(sx, sy + 3 + tw * 2)
+            ctx.moveTo(sx - 3 - tw * 2, sy); ctx.lineTo(sx + 3 + tw * 2, sy); ctx.stroke()
+          }
+          ctx.restore()
+        },
+      })
+    }
+  }
 
   // laser dots
   for (const l of s.lasers) {

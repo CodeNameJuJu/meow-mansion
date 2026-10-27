@@ -31,11 +31,13 @@ export type ClientMsg =
   | { t: 'act'; id: string; kind: 'knock' | 'toggle' }
   | { t: 'dmg'; kind: 'couch'; x: number; y: number }
   | { t: 'laser'; on: boolean; x: number; y: number }
+  | { t: 'pounce'; x: number; y: number }
+  | { t: 'nip'; x: number; y: number }
 
 // -- server -> client ----------------------------------------------------
 
 export type ServerMsg =
-  | { t: 'welcome'; id: string; room: string; players: Player[]; objects: Record<string, string>; toggles: Record<string, boolean>; damage: { couch: number } }
+  | { t: 'welcome'; id: string; room: string; players: Player[]; objects: Record<string, string>; toggles: Record<string, boolean>; damage: { couch: number }; chaos?: number; mouse?: { x: number; y: number } | null; catnip?: { x: number; y: number } | null }
   | { t: 'join'; player: Player }
   | { t: 'leave'; id: string }
   | { t: 'pos'; id: string; x: number; y: number; facing: Facing; pose: Pose }
@@ -44,4 +46,10 @@ export type ServerMsg =
   | { t: 'obj'; id: string; state: string } // 'ok' | 'broken' | 'on' | 'off'
   | { t: 'dmg'; kind: 'couch'; count: number; x: number; y: number }
   | { t: 'laser'; id: string; on: boolean; x: number; y: number }
+  | { t: 'mouse'; x: number; y: number }
+  | { t: 'mousegone' }
+  | { t: 'nip'; x: number; y: number }
+  | { t: 'nipgone'; x: number; y: number; who: string }
+  | { t: 'squeak'; x: number; y: number }
+  | { t: 'chaos'; v: number }
   | { t: 'err'; msg: string }

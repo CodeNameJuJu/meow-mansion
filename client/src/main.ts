@@ -38,7 +38,15 @@ const remotes = new Map<string, Remote>()
 let objects: Record<string, string> = {}
 let toggles: Record<string, boolean> = {}
 let damageCouch = 0
+let mouse: { x: number; y: number } | null = null
+let catnip: { x: number; y: number } | null = null
+let chaos = 0
 const lasers = new Map<string, { x: number; y: number }>()
+
+const setChaos = (v: number) => {
+  const el = document.getElementById('chaos')
+  if (el) el.textContent = `⚡${v}`
+}
 const zoomUntil = new Map<string, number>() // per-cat zoomies expiry (incl me)
 
 let playing = false
@@ -62,6 +70,8 @@ function handle(msg: ServerMsg) {
     case 'welcome': {
       myId = msg.id
       objects = msg.objects; toggles = msg.toggles; damageCouch = msg.damage.couch
+      chaos = msg.chaos ?? 0; setChaos(chaos)
+      mouse = msg.mouse ?? null; catnip = msg.catnip ?? null
       for (const p of msg.players) {
         if (p.id === myId) me = { ...p, phase: 0 }
         else remotes.set(p.id, { ...p, tx: p.x, ty: p.y, phase: Math.random() * 10 })
@@ -118,6 +128,22 @@ function handle(msg: ServerMsg) {
       if (msg.on) lasers.set(msg.id, { x: msg.x, y: msg.y })
       else lasers.delete(msg.id)
       break
+    case 'mouse': mouse = { x: msg.x, y: msg.y }; break
+    case 'mousegone': mouse = null; break
+    case 'nip': catnip = { x: msg.x, y: msg.y }; break
+    case 'nipgone':
+      catnip = null
+      spawn('burst', msg.x, msg.y, { text: 'NIP!', ttl: 0.9, oy: -30 })
+      spawn('hearts', msg.x, msg.y, { ttl: 1.2, oy: -10 })
+      if (msg.who === myId) zoomUntil.set(myId, time + 2.5)
+      sfx.pop()
+      break
+    case 'squeak':
+      mouse = null
+      spawn('burst', msg.x, msg.y, { text: 'SQUEAK!', ttl: 0.9, oy: -30 })
+      sfx.hiss()
+      break
+    case 'chaos': chaos = msg.v; setChaos(chaos); break
     case 'err': setStatus(msg.msg); break
   }
 }
@@ -285,6 +311,16 @@ function update(dt: number) {
     me.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
   }
 
+  // critter proximity — pounce the mouse, gobble the catnip
+  if (mouse && (me.x - mouse.x) ** 2 + (me.y - mouse.y) ** 2 < 22 * 22) {
+    sock.send({ t: 'pounce', x: me.x, y: me.y })
+    mouse = null
+  }
+  if (catnip && (me.x - catnip.x) ** 2 + (me.y - catnip.y) ** 2 < 20 * 20) {
+    sock.send({ t: 'nip', x: me.x, y: me.y })
+    catnip = null
+  }
+
   // pose: walking > timed eat/dig > furniture auto-pose > stand
   const under = furnitureAt(me.x, me.y)
   if (moving) me.pose = 'walk'
@@ -373,7 +409,7 @@ function draw() {
 
   render(ctx, {
     cats, objects, toggles, damageCouch,
-    lasers: [...lasers.values()],
+    lasers: [...lasers.values()], mouse, catnip,
     time, nearBirdbath,
     interact: interactTarget, myId,
   })
