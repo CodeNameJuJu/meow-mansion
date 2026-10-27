@@ -107,8 +107,8 @@ export const FURNITURE: Furniture[] = [
 
   // living room
   { id: 'tvstand', kind: 'tvstand', label: 'the TV', rect: { x: 1040, y: 495, w: 170, h: 55 }, h: 45, solid: true, interact: 'tv', prompt: 'flick the TV' },
-  { id: 'couch', kind: 'couch', label: 'the couch', rect: { x: 990, y: 650, w: 290, h: 85 }, h: 30, solid: false, walkable: true, autoPose: 'sit', interact: 'scratch', prompt: 'shred the couch' },
-  { id: 'coffeetable', kind: 'coffeetable', label: 'the coffee table', rect: { x: 1040, y: 560, w: 190, h: 45 }, h: 30, solid: false, walkable: true },
+  { id: 'couch', kind: 'couch', label: 'the couch', rect: { x: 990, y: 830, w: 290, h: 85 }, h: 30, solid: false, walkable: true, autoPose: 'sit', interact: 'scratch', prompt: 'shred the couch' },
+  { id: 'coffeetable', kind: 'coffeetable', label: 'the coffee table', rect: { x: 1040, y: 700, w: 190, h: 45 }, h: 30, solid: false, walkable: true },
   { id: 'bookshelf', kind: 'bookshelf', label: 'the bookshelf', rect: { x: 780, y: 545, w: 200, h: 55 }, h: 70, solid: true },
   { id: 'post', kind: 'post', label: 'the scratching post', rect: { x: 1480, y: 950, w: 55, h: 55 }, h: 55, solid: true, interact: 'scratchgood', prompt: 'scratch (legally)' },
   { id: 'plant', kind: 'plant', label: 'the houseplant', rect: { x: 1500, y: 500, w: 55, h: 70 }, h: 26, solid: true, interact: 'chomp', prompt: 'chew a leaf' },
@@ -126,7 +126,7 @@ export const OBJECTS: WorldObject[] = [
   { id: 'cup2', x: 845, y: 162, z: 60, kind: 'cup' },
   { id: 'frame1', x: 910, y: 162, z: 60, kind: 'frame' },
   { id: 'books1', x: 862, y: 559, z: 70, kind: 'books' },
-  { id: 'mug1', x: 1128, y: 576, z: 30, kind: 'mug' },
+  { id: 'mug1', x: 1128, y: 716, z: 30, kind: 'mug' },
   { id: 'tp', x: 250, y: 540, z: 0, kind: 'tp' },
   // toggles (drawn but not knockable)
   { id: 'lamp1', x: 1245, y: 128, z: 45, kind: 'lamp' },
