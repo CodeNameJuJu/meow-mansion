@@ -1,0 +1,22 @@
+{
+  "name": "meow-mansion",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n server,client -c yellow,magenta \"node server/server.js\" \"vite client\"",
+    "dev:server": "node server/server.js",
+    "dev:client": "vite client",
+    "build": "vite build client",
+    "typecheck": "tsc --noEmit -p client",
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.0",
+    "vite": "^6.3.0"
+  }
+}

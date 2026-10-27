@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MEOW MANSION</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="customize" class="panel" hidden>
+    <h1>MEOW<br/>MANSION</h1>
+    <p class="tag">a silly little multiplayer cat simulator</p>
+    <canvas id="preview" width="300" height="220"></canvas>
+    <label class="fld">name <input id="catname" maxlength="16" autocomplete="off" /></label>
+    <label class="fld">room <input id="room" value="mansion" maxlength="24" autocomplete="off" /></label>
+    <div class="group" id="colors"></div>
+    <div class="group" id="patterns"></div>
+    <div class="group" id="accessories"></div>
+    <button id="join">MOVE IN!</button>
+    <div id="status"></div>
+    <p class="hint">same room name = same house. share it with a friend.</p>
+  </div>
+
+  <div id="hud" hidden>
+    <div id="hudbar">
+      <span id="hudroom"></span>
+      <span class="sep">·</span>
+      <span>WASD move</span><span class="sep">·</span>
+      <span>E interact</span><span class="sep">·</span>
+      <span>Enter chat</span><span class="sep">·</span>
+      <span>1 meow · 2 hiss · 3 purr · 4 ZOOMIES · 5 boop</span><span class="sep">·</span>
+      <span>L laser pointer</span>
+    </div>
+  </div>
+
+  <input id="chatbox" maxlength="80" placeholder="say something catty…" hidden />
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
