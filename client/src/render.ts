@@ -103,18 +103,45 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
   for (const c of s.cats) {
     items.push({ x: c.x, y: c.y, draw: () => drawCatWithName(ctx, c, s.myId) })
   }
-  // insertion sort honouring pairwise frontOf relations — a global sort()
-  // can violate direct comparisons when the comparator isn't transitive,
-  // which shows up as walls swallowing furniture/cats they shouldn't.
-  const sorted: Item[] = []
-  for (const it of items) {
-    let idx = 0
-    for (let i = 0; i < sorted.length; i++) {
-      if (frontOf(it, sorted[i])) idx = i + 1
+  // Topological depth sort: build "draws before" edges from every pairwise
+  // frontOf relation and emit in dependency order. A single comparator pass
+  // can't be trusted — the relation is a *partial* order and sort() happily
+  // schedules walls after furniture that's in front of them.
+  const n = items.length
+  const indeg = new Array<number>(n).fill(0)
+  const out: number[][] = items.map(() => [])
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      if (i !== j && frontOf(items[j], items[i])) {
+        out[i].push(j)
+        indeg[j]++
+      }
     }
-    sorted.splice(idx, 0, it)
   }
-  for (const it of sorted) it.draw()
+  const queue = items.map((_, i) => i).filter((i) => indeg[i] === 0)
+  const drawn = new Array<boolean>(n).fill(false)
+  let left = n
+  while (left > 0) {
+    if (queue.length === 0) {
+      // rare cycle — break it by emitting the shallowest remaining item
+      let bi = -1
+      for (let i = 0; i < n; i++) if (!drawn[i]) { bi = i; break }
+      queue.push(bi)
+    }
+    // emit the ready item closest to the back corner (deterministic order)
+    let bi = 0
+    for (let k = 1; k < queue.length; k++) {
+      const a = items[queue[k]], b = items[queue[bi]]
+      const ka = a.r ? a.r.x + a.r.y : a.x + a.y
+      const kb = b.r ? b.r.x + b.r.y : b.x + b.y
+      if (ka < kb) bi = k
+    }
+    const i = queue.splice(bi, 1)[0]
+    drawn[i] = true
+    left--
+    items[i].draw()
+    for (const j of out[i]) if (--indeg[j] === 0) queue.push(j)
+  }
 
   drawBird(ctx, s.time, s.nearBirdbath)
 
