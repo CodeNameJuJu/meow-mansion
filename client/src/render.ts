@@ -103,8 +103,18 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
   for (const c of s.cats) {
     items.push({ x: c.x, y: c.y, draw: () => drawCatWithName(ctx, c, s.myId) })
   }
-  items.sort((a, b) => (frontOf(a, b) ? 1 : -1))
-  for (const it of items) it.draw()
+  // insertion sort honouring pairwise frontOf relations — a global sort()
+  // can violate direct comparisons when the comparator isn't transitive,
+  // which shows up as walls swallowing furniture/cats they shouldn't.
+  const sorted: Item[] = []
+  for (const it of items) {
+    let idx = 0
+    for (let i = 0; i < sorted.length; i++) {
+      if (frontOf(it, sorted[i])) idx = i + 1
+    }
+    sorted.splice(idx, 0, it)
+  }
+  for (const it of sorted) it.draw()
 
   drawBird(ctx, s.time, s.nearBirdbath)
 
