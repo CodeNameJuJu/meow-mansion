@@ -69,6 +69,8 @@ export interface Furniture {
   kind: string           // drawing style
   label: string
   rect: Rect
+  h: number              // drawn height in px (iso extrusion)
+  z?: number             // elevation it sits on (0 = floor)
   solid: boolean
   walkable?: boolean     // cats can stand on it (tables, bed, couch)
   flat?: boolean         // floor decor — always drawn under entities, never sorted
@@ -79,56 +81,56 @@ export interface Furniture {
 
 export const FURNITURE: Furniture[] = [
   // kitchen
-  { id: 'fridge', kind: 'fridge', label: 'the fridge', rect: { x: 80, y: 80, w: 84, h: 110 }, solid: true, interact: 'fridge', prompt: 'stare at the fridge' },
-  { id: 'counter', kind: 'counter', label: 'the counter', rect: { x: 170, y: 80, w: 350, h: 50 }, solid: true },
-  { id: 'stove', kind: 'stove', label: 'the stove', rect: { x: 310, y: 84, w: 100, h: 42 }, solid: true, interact: 'stove', prompt: 'touch the stove (bad idea)' },
-  { id: 'table', kind: 'table', label: 'the table', rect: { x: 300, y: 230, w: 150, h: 90 }, solid: false, walkable: true },
-  { id: 'bowl1', kind: 'bowl', label: 'the food bowl', rect: { x: 96, y: 358, w: 38, h: 28 }, solid: false, interact: 'eat', prompt: 'have a snack' },
-  { id: 'bowl2', kind: 'bowl', label: 'the other bowl', rect: { x: 146, y: 358, w: 38, h: 28 }, solid: false, interact: 'eat', prompt: 'have a snack' },
+  { id: 'fridge', kind: 'fridge', label: 'the fridge', rect: { x: 80, y: 80, w: 84, h: 110 }, h: 85, solid: true, interact: 'fridge', prompt: 'stare at the fridge' },
+  { id: 'counter', kind: 'counter', label: 'the counter', rect: { x: 170, y: 80, w: 350, h: 50 }, h: 50, solid: true },
+  { id: 'stove', kind: 'stove', label: 'the stove', rect: { x: 310, y: 84, w: 100, h: 42 }, h: 8, z: 50, solid: true, interact: 'stove', prompt: 'touch the stove (bad idea)' },
+  { id: 'table', kind: 'table', label: 'the table', rect: { x: 300, y: 230, w: 150, h: 90 }, h: 42, solid: false, walkable: true },
+  { id: 'bowl1', kind: 'bowl', label: 'the food bowl', rect: { x: 96, y: 358, w: 38, h: 28 }, h: 8, solid: false, interact: 'eat', prompt: 'have a snack' },
+  { id: 'bowl2', kind: 'bowl', label: 'the other bowl', rect: { x: 146, y: 358, w: 38, h: 28 }, h: 8, solid: false, interact: 'eat', prompt: 'have a snack' },
 
   // bedroom
-  { id: 'bed', kind: 'bed', label: 'the bed', rect: { x: 1300, y: 90, w: 270, h: 170 }, solid: false, walkable: true, autoPose: 'sleep' },
-  { id: 'dresser', kind: 'dresser', label: 'the dresser', rect: { x: 790, y: 80, w: 170, h: 60 }, solid: true },
-  { id: 'nightstand', kind: 'nightstand', label: 'the lamp', rect: { x: 1210, y: 90, w: 70, h: 70 }, solid: true, interact: 'lamp', prompt: 'flick the lamp' },
-  { id: 'rugB', kind: 'rug', label: 'a rug', rect: { x: 980, y: 240, w: 220, h: 120 }, solid: false, flat: true },
+  { id: 'bed', kind: 'bed', label: 'the bed', rect: { x: 1300, y: 90, w: 270, h: 170 }, h: 28, solid: false, walkable: true, autoPose: 'sleep' },
+  { id: 'dresser', kind: 'dresser', label: 'the dresser', rect: { x: 790, y: 80, w: 170, h: 60 }, h: 60, solid: true },
+  { id: 'nightstand', kind: 'nightstand', label: 'the lamp', rect: { x: 1210, y: 90, w: 70, h: 70 }, h: 45, solid: true, interact: 'lamp', prompt: 'flick the lamp' },
+  { id: 'rugB', kind: 'rug', label: 'a rug', rect: { x: 980, y: 240, w: 220, h: 120 }, h: 0, solid: false, flat: true },
 
   // bathroom
-  { id: 'sink', kind: 'sink', label: 'the sink', rect: { x: 80, y: 470, w: 80, h: 60 }, solid: true, interact: 'splash', prompt: 'bat at the tap' },
-  { id: 'toilet', kind: 'toilet', label: 'the toilet', rect: { x: 180, y: 470, w: 55, h: 70 }, solid: true, interact: 'flush', prompt: 'flush it' },
-  { id: 'tub', kind: 'tub', label: 'the tub', rect: { x: 80, y: 570, w: 140, h: 110 }, solid: true, interact: 'splash', prompt: 'fear the water' },
-  { id: 'litter', kind: 'litter', label: 'the litter box', rect: { x: 360, y: 580, w: 150, h: 90 }, solid: false, walkable: true, autoPose: 'eat', interact: 'dig', prompt: 'dig. dig dig dig.' },
+  { id: 'sink', kind: 'sink', label: 'the sink', rect: { x: 80, y: 470, w: 80, h: 60 }, h: 48, solid: true, interact: 'splash', prompt: 'bat at the tap' },
+  { id: 'toilet', kind: 'toilet', label: 'the toilet', rect: { x: 180, y: 470, w: 55, h: 70 }, h: 36, solid: true, interact: 'flush', prompt: 'flush it' },
+  { id: 'tub', kind: 'tub', label: 'the tub', rect: { x: 80, y: 570, w: 140, h: 110 }, h: 36, solid: true, interact: 'splash', prompt: 'fear the water' },
+  { id: 'litter', kind: 'litter', label: 'the litter box', rect: { x: 360, y: 580, w: 150, h: 90 }, h: 12, solid: false, walkable: true, autoPose: 'eat', interact: 'dig', prompt: 'dig. dig dig dig.' },
 
   // garden
-  { id: 'tree', kind: 'tree', label: 'the tree', rect: { x: 150, y: 930, w: 34, h: 50 }, solid: true, interact: 'rustle', prompt: 'attack the tree' },
-  { id: 'bush', kind: 'bush', label: 'a suspicious bush', rect: { x: 380, y: 1000, w: 70, h: 55 }, solid: true, interact: 'rustle', prompt: 'rustle the bush' },
-  { id: 'birdbath', kind: 'birdbath', label: 'the birdbath', rect: { x: 330, y: 810, w: 44, h: 40 }, solid: true, interact: 'splash', prompt: 'splash the birdbath' },
+  { id: 'tree', kind: 'tree', label: 'the tree', rect: { x: 150, y: 930, w: 34, h: 50 }, h: 60, solid: true, interact: 'rustle', prompt: 'attack the tree' },
+  { id: 'bush', kind: 'bush', label: 'a suspicious bush', rect: { x: 380, y: 1000, w: 70, h: 55 }, h: 40, solid: true, interact: 'rustle', prompt: 'rustle the bush' },
+  { id: 'birdbath', kind: 'birdbath', label: 'the birdbath', rect: { x: 330, y: 810, w: 44, h: 40 }, h: 40, solid: true, interact: 'splash', prompt: 'splash the birdbath' },
 
   // living room
-  { id: 'tvstand', kind: 'tvstand', label: 'the TV', rect: { x: 1040, y: 495, w: 170, h: 55 }, solid: true, interact: 'tv', prompt: 'flick the TV' },
-  { id: 'couch', kind: 'couch', label: 'the couch', rect: { x: 990, y: 650, w: 290, h: 85 }, solid: false, walkable: true, autoPose: 'sit', interact: 'scratch', prompt: 'shred the couch' },
-  { id: 'coffeetable', kind: 'coffeetable', label: 'the coffee table', rect: { x: 1040, y: 560, w: 190, h: 45 }, solid: false, walkable: true },
-  { id: 'bookshelf', kind: 'bookshelf', label: 'the bookshelf', rect: { x: 780, y: 480, w: 200, h: 55 }, solid: true },
-  { id: 'post', kind: 'post', label: 'the scratching post', rect: { x: 1480, y: 950, w: 55, h: 55 }, solid: true, interact: 'scratchgood', prompt: 'scratch (legally)' },
-  { id: 'plant', kind: 'plant', label: 'the houseplant', rect: { x: 1500, y: 500, w: 55, h: 70 }, solid: true, interact: 'chomp', prompt: 'chew a leaf' },
-  { id: 'rugL', kind: 'rug', label: 'the big rug', rect: { x: 980, y: 800, w: 260, h: 150 }, solid: false, flat: true },
-  { id: 'runner', kind: 'runner', label: 'the runner', rect: { x: 575, y: 300, w: 150, h: 600 }, solid: false, flat: true },
+  { id: 'tvstand', kind: 'tvstand', label: 'the TV', rect: { x: 1040, y: 495, w: 170, h: 55 }, h: 45, solid: true, interact: 'tv', prompt: 'flick the TV' },
+  { id: 'couch', kind: 'couch', label: 'the couch', rect: { x: 990, y: 650, w: 290, h: 85 }, h: 30, solid: false, walkable: true, autoPose: 'sit', interact: 'scratch', prompt: 'shred the couch' },
+  { id: 'coffeetable', kind: 'coffeetable', label: 'the coffee table', rect: { x: 1040, y: 560, w: 190, h: 45 }, h: 30, solid: false, walkable: true },
+  { id: 'bookshelf', kind: 'bookshelf', label: 'the bookshelf', rect: { x: 780, y: 480, w: 200, h: 55 }, h: 70, solid: true },
+  { id: 'post', kind: 'post', label: 'the scratching post', rect: { x: 1480, y: 950, w: 55, h: 55 }, h: 55, solid: true, interact: 'scratchgood', prompt: 'scratch (legally)' },
+  { id: 'plant', kind: 'plant', label: 'the houseplant', rect: { x: 1500, y: 500, w: 55, h: 70 }, h: 26, solid: true, interact: 'chomp', prompt: 'chew a leaf' },
+  { id: 'rugL', kind: 'rug', label: 'the big rug', rect: { x: 980, y: 800, w: 260, h: 150 }, h: 0, solid: false, flat: true },
+  { id: 'runner', kind: 'runner', label: 'the runner', rect: { x: 575, y: 300, w: 150, h: 600 }, h: 0, solid: false, flat: true },
 ]
 
 // -------------------------------------------- knockable/toggle objects ---
 
-export interface WorldObject { id: string; x: number; y: number; kind: string }
+export interface WorldObject { id: string; x: number; y: number; z: number; kind: string }
 
 export const OBJECTS: WorldObject[] = [
-  { id: 'vase1', x: 372, y: 262, kind: 'vase' },
-  { id: 'cup1', x: 428, y: 292, kind: 'cup' },
-  { id: 'cup2', x: 825, y: 102, kind: 'cup' },
-  { id: 'frame1', x: 890, y: 102, kind: 'frame' },
-  { id: 'books1', x: 862, y: 494, kind: 'books' },
-  { id: 'mug1', x: 1128, y: 576, kind: 'mug' },
-  { id: 'tp', x: 262, y: 480, kind: 'tp' },
+  { id: 'vase1', x: 372, y: 262, z: 42, kind: 'vase' },
+  { id: 'cup1', x: 428, y: 292, z: 42, kind: 'cup' },
+  { id: 'cup2', x: 825, y: 102, z: 60, kind: 'cup' },
+  { id: 'frame1', x: 890, y: 102, z: 60, kind: 'frame' },
+  { id: 'books1', x: 862, y: 494, z: 70, kind: 'books' },
+  { id: 'mug1', x: 1128, y: 576, z: 30, kind: 'mug' },
+  { id: 'tp', x: 262, y: 480, z: 45, kind: 'tp' },
   // toggles (drawn but not knockable)
-  { id: 'lamp1', x: 1245, y: 108, kind: 'lamp' },
-  { id: 'tv1', x: 1125, y: 507, kind: 'tvscreen' },
+  { id: 'lamp1', x: 1245, y: 108, z: 45, kind: 'lamp' },
+  { id: 'tv1', x: 1125, y: 507, z: 0, kind: 'tvscreen' },
 ]
 export const OBJECT_BY_ID = new Map(OBJECTS.map((o) => [o.id, o]))
 

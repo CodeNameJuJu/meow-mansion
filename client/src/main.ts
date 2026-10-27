@@ -3,6 +3,7 @@
 import { Socket } from './net'
 import { initInput, setChatOpen, moveVector } from './input'
 import { spawn, updateFx } from './effects'
+import { iso, unIso } from './iso'
 import { WORLD, collide, roomAt, furnitureAt, nearestInteractable, OBJECT_BY_ID, type InteractTarget } from './house'
 import { render, type RenderCat } from './render'
 import { captionBox, INK } from './comic'
@@ -77,7 +78,7 @@ function handle(msg: ServerMsg) {
     case 'join': {
       remotes.set(msg.player.id, { ...msg.player, tx: msg.player.x, ty: msg.player.y, phase: Math.random() * 10 })
       hudroom.textContent = `${roomName} · ${remotes.size + 1} cats`
-      spawn('burst', msg.player.x, msg.player.y - 30, { text: 'A NEW CAT!', ttl: 1.4 })
+      spawn('burst', msg.player.x, msg.player.y, { text: 'A NEW CAT!', ttl: 1.4, oy: -30 })
       break
     }
     case 'leave': {
@@ -90,7 +91,7 @@ function handle(msg: ServerMsg) {
       if (r) { r.tx = msg.x; r.ty = msg.y; r.facing = msg.facing; r.pose = msg.pose }
       break
     }
-    case 'chat': spawn('bubble', 0, 0, { text: msg.text, follow: msg.id, ttl: 4 }); break
+    case 'chat': spawn('bubble', 0, 0, { text: msg.text, follow: msg.id, ttl: 4, oy: -34 }); break
     case 'emote': onEmote(msg.id, msg.kind, msg.target); break
     case 'obj': {
       objects[msg.id] = msg.state
@@ -98,10 +99,10 @@ function handle(msg: ServerMsg) {
       const o = OBJECT_BY_ID.get(msg.id)
       if (o && msg.state === 'broken') {
         if (o.kind === 'tp') {
-          spawn('burst', o.x, o.y - 20, { text: 'WHIRR!', ttl: 1 })
+          spawn('burst', o.x, o.y, { text: 'WHIRR!', ttl: 1, oy: -20 })
           spawn('paper', o.x, o.y, { ttl: 1.6 })
         } else {
-          spawn('burst', o.x, o.y - 16, { text: 'KER-PLUNK!', ttl: 1.1 })
+          spawn('burst', o.x, o.y, { text: 'KER-PLUNK!', ttl: 1.1, oy: -16 })
           spawn('shards', o.x, o.y, { ttl: 6 })
           sfx.plunk()
         }
@@ -112,7 +113,7 @@ function handle(msg: ServerMsg) {
     }
     case 'dmg':
       damageCouch = msg.count
-      spawn('burst', msg.x, msg.y - 40, { text: 'SKRRRT!', ttl: 1 })
+      spawn('burst', msg.x, msg.y, { text: 'SKRRRT!', ttl: 1, oy: -40 })
       sfx.plunk()
       break
     case 'laser':
@@ -127,18 +128,18 @@ function onEmote(id: string, kind: string, target: string) {
   const p = catPos(id)
   const tp = target ? catPos(target) : null
   if (kind === 'boop' && tp) {
-    spawn('burst', tp.x, tp.y - 36, { text: 'BOOP!', ttl: 1 })
-    spawn('hearts', tp.x, tp.y - 10, { ttl: 1.4 })
+    spawn('burst', tp.x, tp.y, { text: 'BOOP!', ttl: 1, oy: -36 })
+    spawn('hearts', tp.x, tp.y, { ttl: 1.4, oy: -10 })
     sfx.pop()
     return
   }
   if (!p) return
   switch (kind) {
-    case 'meow': spawn('burst', p.x, p.y - 44, { text: 'MEOW!', ttl: 0.9 }); sfx.meow(); break
-    case 'hiss': spawn('burst', p.x, p.y - 44, { text: 'HISS!', ttl: 0.9 }); spawn('angry', p.x, p.y - 20, { ttl: 0.8 }); sfx.hiss(); break
-    case 'purr': spawn('hearts', p.x, p.y - 16, { ttl: 1.6 }); sfx.pop(); break
-    case 'zoom': spawn('burst', p.x, p.y - 44, { text: 'ZOOMIES!!', ttl: 1 }); zoomUntil.set(id, time + 1.8); sfx.pop(); break
-    case 'boop': spawn('burst', p.x + 20, p.y - 40, { text: 'boop?', ttl: 0.8 }); break
+    case 'meow': spawn('burst', p.x, p.y, { text: 'MEOW!', ttl: 0.9, oy: -44 }); sfx.meow(); break
+    case 'hiss': spawn('burst', p.x, p.y, { text: 'HISS!', ttl: 0.9, oy: -44 }); spawn('angry', p.x, p.y, { ttl: 0.8, oy: -20 }); sfx.hiss(); break
+    case 'purr': spawn('hearts', p.x, p.y, { ttl: 1.6, oy: -16 }); sfx.pop(); break
+    case 'zoom': spawn('burst', p.x, p.y, { text: 'ZOOMIES!!', ttl: 1, oy: -44 }); zoomUntil.set(id, time + 1.8); sfx.pop(); break
+    case 'boop': spawn('burst', p.x, p.y, { text: 'boop?', ttl: 0.8, ox: 20, oy: -40 }); break
   }
 }
 
@@ -214,7 +215,9 @@ canvas.addEventListener('mousedown', (e) => {
   void e
 })
 
-function mouseWorld() { return { x: mouse.x + cam.x, y: mouse.y + cam.y } }
+function mouseWorld() {
+  return unIso(mouse.x + cam.x, mouse.y + cam.y)
+}
 
 // -------------------------------------------------------- interactions ---
 
@@ -227,19 +230,19 @@ function interact() {
   }
   const f = t.furniture!
   switch (f.interact) {
-    case 'eat': eatUntil = time + 1.6; spawn('burst', me.x, me.y - 40, { text: 'NOM NOM', ttl: 0.9 }); sfx.pop(); break
-    case 'dig': spawn('puff', t.x, t.y + 20, { ttl: 0.8 }); spawn('stink', t.x, t.y + 10, { ttl: 2.2 }); spawn('burst', me.x, me.y - 40, { text: 'dig dig', ttl: 0.8 }); break
+    case 'eat': eatUntil = time + 1.6; spawn('burst', me.x, me.y, { text: 'NOM NOM', ttl: 0.9, oy: -40 }); sfx.pop(); break
+    case 'dig': spawn('puff', t.x, t.y + 20, { ttl: 0.8 }); spawn('stink', t.x, t.y + 10, { ttl: 2.2 }); spawn('burst', me.x, me.y, { text: 'dig dig', ttl: 0.8, oy: -40 }); break
     case 'splash': spawn('splash', t.x, t.y, { ttl: 0.7 }); sfx.splish(); break
-    case 'flush': spawn('splash', t.x, t.y, { ttl: 0.9 }); spawn('burst', t.x, t.y - 50, { text: 'FWOOSH!', ttl: 0.9 }); sfx.splish(); break
+    case 'flush': spawn('splash', t.x, t.y, { ttl: 0.9 }); spawn('burst', t.x, t.y, { text: 'FWOOSH!', ttl: 0.9, oy: -50 }); sfx.splish(); break
     case 'scratch': sock.send({ t: 'dmg', kind: 'couch', x: me.x, y: me.y }); break
-    case 'scratchgood': spawn('burst', me.x, me.y - 40, { text: 'SKRIITCH', ttl: 0.9 }); spawn('hearts', me.x, me.y - 10, { ttl: 1 }); sfx.pop(); break
+    case 'scratchgood': spawn('burst', me.x, me.y, { text: 'SKRIITCH', ttl: 0.9, oy: -40 }); spawn('hearts', me.x, me.y, { ttl: 1, oy: -10 }); sfx.pop(); break
     case 'tv': sock.send({ t: 'act', id: 'tv1', kind: 'toggle' }); break
     case 'lamp': sock.send({ t: 'act', id: 'lamp1', kind: 'toggle' }); break
-    case 'chomp': spawn('burst', me.x, me.y - 40, { text: 'CHOMP', ttl: 0.8 }); spawn('paper', t.x, t.y, { ttl: 1, color: '#7fb356' }); break
-    case 'rustle': spawn('burst', t.x, t.y - 30, { text: 'FWOOSH', ttl: 0.8 }); spawn('paper', t.x, t.y - 40, { ttl: 1.4, color: '#7fb356' }); break
+    case 'chomp': spawn('burst', me.x, me.y, { text: 'CHOMP', ttl: 0.8, oy: -40 }); spawn('paper', t.x, t.y, { ttl: 1, color: '#7fb356' }); break
+    case 'rustle': spawn('burst', t.x, t.y, { text: 'FWOOSH', ttl: 0.8, oy: -30 }); spawn('paper', t.x, t.y, { ttl: 1.4, color: '#7fb356', oy: -40 }); break
     case 'stove': {
-      spawn('burst', me.x, me.y - 40, { text: 'SSSS!', ttl: 0.8 })
-      spawn('angry', me.x, me.y - 10, { ttl: 0.8 })
+      spawn('burst', me.x, me.y, { text: 'SSSS!', ttl: 0.8, oy: -40 })
+      spawn('angry', me.x, me.y, { ttl: 0.8, oy: -10 })
       sfx.hiss()
       // recoil away from the stove
       const dx = me.x - t.x, dy = me.y - t.y, d = Math.hypot(dx, dy) || 1
@@ -247,7 +250,7 @@ function interact() {
       me.x = p.x; me.y = p.y
       break
     }
-    case 'fridge': spawn('bubble', 0, 0, { text: 'snacks??', follow: myId, ttl: 2.2 }); sfx.meow(); break
+    case 'fridge': spawn('bubble', 0, 0, { text: 'snacks??', follow: myId, ttl: 2.2, oy: -34 }); sfx.meow(); break
   }
 }
 
@@ -323,9 +326,14 @@ function update(dt: number) {
 
   interactTarget = nearestInteractable(me.x, me.y)
 
-  // camera follows, clamped (or centred if the world fits)
-  cam.x = WORLD.w <= vw ? (WORLD.w - vw) / 2 : Math.min(WORLD.w - vw, Math.max(0, me.x - vw / 2))
-  cam.y = WORLD.h <= vh ? (WORLD.h - vh) / 2 : Math.min(WORLD.h - vh, Math.max(0, me.y - vh / 2))
+  // camera follows in iso space, clamped to the projected world bounds
+  const p = iso(me.x, me.y)
+  const minSX = iso(0, WORLD.h).sx - 80
+  const maxSX = iso(WORLD.w, 0).sx + 80
+  const minSY = -120
+  const maxSY = iso(WORLD.w, WORLD.h).sy + 80
+  cam.x = maxSX - minSX <= vw ? (minSX + maxSX - vw) / 2 : Math.min(maxSX - vw, Math.max(minSX, p.sx - vw / 2))
+  cam.y = maxSY - minSY <= vh ? (minSY + maxSY - vh) / 2 : Math.min(maxSY - vh, Math.max(minSY, p.sy - vh * 0.55))
 
   updateFx(dt, catPos)
 }
@@ -345,7 +353,8 @@ function draw() {
 
   const cats: RenderCat[] = [me, ...remotes.values()].map((c) => ({
     id: c.id, name: c.name, cat: c.cat,
-    x: c.x, y: c.y, facing: c.facing, pose: c.pose, phase: c.phase,
+    x: c.x, y: c.y, z: furnitureAt(c.x, c.y)?.h ?? 0,
+    facing: c.facing, pose: c.pose, phase: c.phase,
   }))
 
   let nearBirdbath = 999
