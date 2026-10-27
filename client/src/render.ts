@@ -555,7 +555,7 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
   for (const c of s.cats) {
     const p = project(c.x, c.y, c.z)
     if (!p) continue
-    const scale = sc(p.depth)
+    const scale = sc(p.depth) * 0.6 // cats are small relative to the house
     const facing = relFacing(c.facing)
     const isMe = c.id === s.myId
     out.push({

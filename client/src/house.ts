@@ -2,7 +2,7 @@
 // Coordinates are world pixels. Interior bounds: x 60..1620, y 60..1100.
 
 export const WORLD = { w: 1680, h: 1160 }
-export const CAT_R = 13 // cat collision radius
+export const CAT_R = 9 // cat collision radius
 
 export interface Rect { x: number; y: number; w: number; h: number }
 export const inRect = (r: Rect, x: number, y: number) =>

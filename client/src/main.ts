@@ -276,7 +276,7 @@ function update(dt: number) {
   const dx = fwd * cs - strafe * sn
   const dy = fwd * sn + strafe * cs
   const zooming = time < (zoomUntil.get(myId) ?? 0)
-  const speed = zooming ? 300 : 150
+  const speed = zooming ? 260 : 120
   const moving = dx !== 0 || dy !== 0
 
   if (moving) {
