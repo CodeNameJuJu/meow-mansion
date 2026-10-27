@@ -11,9 +11,20 @@ const COS = Math.cos(Math.PI / 6)
 
 export interface Sprite { img: HTMLCanvasElement; ax: number; ay: number }
 
-const sprites = new Map<string, Sprite>()
+const sprites = new Map<string, SpriteSet>()
 
-/** iso projection local to a sprite: (ax, ay) is the anchor = front-bottom-centre. */
+/** A baked item: one offscreen canvas per cardinal view, picked by camera angle. */
+export interface SpriteSet { views: Sprite[] }
+
+/** 90°-step rotations of local coords — view 0 is the SE (x+y+) side. */
+const ROT: ((dx: number, dy: number) => [number, number])[] = [
+  (dx, dy) => [dx, dy],
+  (dx, dy) => [dy, -dx],
+  (dx, dy) => [-dx, -dy],
+  (dx, dy) => [-dy, dx],
+]
+
+/** iso projection local to a sprite: (ax, ay) is the anchor = floor centre. */
 type Iso = (x: number, y: number, z: number) => { sx: number; sy: number }
 
 function bake(w: number, h: number, ax: number, ay: number, draw: (ctx: CanvasRenderingContext2D, iso: Iso) => void): Sprite {
@@ -281,31 +292,42 @@ function drawObjectInto(ctx: CanvasRenderingContext2D, kind: string) {
 // furniture that must stay live-drawn (has dynamic state)
 export const LIVE_FURNITURE = new Set(['couch', 'tvstand'])
 
-export function spriteFor(id: string): Sprite {
+export function spriteFor(id: string): SpriteSet {
   let s = sprites.get(id)
   if (s) return s
 
   const f = FURNITURE.find((x) => x.id === id)
+  const views: Sprite[] = []
   if (f) {
     const r = f.rect
+    const cx = r.x + r.w / 2, cy = r.y + r.h / 2
     const W = (r.w + r.h) * 0.9 + 160
     const H = (r.w + r.h) / 2 + f.h + 220
-    // anchor = the item's front-bottom-centre — the "feet" point the
-    // billboard is planted on in the 3D view
-    const ax0 = r.x + r.w / 2, ay0 = r.y + r.h
-    s = bake(W, H, W / 2, H - 80, (ctx) => {
-      const iso: Iso = (x, y, z = 0) => ({
-        sx: W / 2 + ((x - ax0) - (y - ay0)) * COS,
-        sy: H - 80 + ((x - ax0) + (y - ay0)) / 2 - z,
-      })
-      drawFurnitureInto(ctx, iso, f)
-    })
+    // anchor = the item's floor centre — planted, never slides between views
+    const ay = H - ((r.w + r.h) / 4 + 60)
+    for (let k = 0; k < 4; k++) {
+      views.push(bake(W, H, W / 2, ay, (ctx) => {
+        const rot = ROT[k]
+        const iso: Iso = (x, y, z = 0) => {
+          const [rx, ry] = rot(x - cx, y - cy)
+          return { sx: W / 2 + (rx - ry) * COS, sy: ay + (rx + ry) / 2 - z }
+        }
+        drawFurnitureInto(ctx, iso, f)
+      }))
+    }
   } else {
-    s = bake(96, 96, 48, 70, (ctx) => {
-      ctx.translate(48, 70)
-      drawObjectInto(ctx, id)
-    })
+    for (let k = 0; k < 4; k++) {
+      views.push(bake(96, 96, 48, 78, (ctx) => {
+        ctx.translate(48, 78)
+        ctx.save()
+        if (k === 1 || k === 3) ctx.scale(-1, 1)
+        if (k === 2) ctx.scale(-1, -1)
+        drawObjectInto(ctx, id)
+        ctx.restore()
+      }))
+    }
   }
+  s = { views }
   sprites.set(id, s)
   return s
 }

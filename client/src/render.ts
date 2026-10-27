@@ -103,11 +103,16 @@ function pushSeg(out: Drawable[], ctx: CanvasRenderingContext2D, a: [number, num
   })
 }
 
-/** Push a baked sprite onto the draw list — one drawImage, that's it. */
+/** Push a baked sprite onto the draw list — one drawImage, that's it. The
+ *  sprite is picked from 4 fixed views by which side of the item the camera
+ *  is on, so it never appears to rotate. */
 function pushSprite(out: Drawable[], ctx: CanvasRenderingContext2D, id: string, x: number, y: number, z: number) {
   const p = project(x, y, z)
   if (!p) return
-  const spr = spriteFor(id)
+  const views = spriteFor(id).views
+  const phi = Math.atan2(cam.y - y, cam.x - x) // bearing item -> camera
+  const k = ((Math.round((phi - Math.PI / 4) / (Math.PI / 2)) % 4) + 4) % 4
+  const spr = views[k]
   const scale = sc(p.depth)
   out.push({
     depth: p.depth,
@@ -406,7 +411,7 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
     if (LIVE_FURNITURE.has(f.kind)) {
       drawFurniture(ctx, out, f, s)
     } else {
-      pushSprite(out, ctx, f.id, f.rect.x + f.rect.w / 2, f.rect.y + f.rect.h, 0)
+      pushSprite(out, ctx, f.id, f.rect.x + f.rect.w / 2, f.rect.y + f.rect.h / 2, 0)
       if (f.kind === 'birdbath' && s.nearBirdbath < 140)
         drawBird(ctx, out, f.rect.x + f.rect.w / 2, f.rect.y + f.rect.h / 2, 54, s.time)
     }
