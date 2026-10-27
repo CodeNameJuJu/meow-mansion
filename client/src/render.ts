@@ -40,12 +40,16 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
   // flat floor decor (rugs, runners) sits under everything else
   for (const f of FURNITURE) if (f.flat) drawFurniture(ctx, f, s)
 
-  // painter's sort: furniture + cats + objects by baseline y
+  // painter's sort: furniture + cats + objects + horizontal wall bands by
+  // baseline y — a cat south of a wall draws over it, a cat north under it.
   interface Item { y: number; draw: () => void }
   const items: Item[] = []
   for (const f of FURNITURE) {
     if (f.flat) continue
     items.push({ y: f.rect.y + f.rect.h, draw: () => drawFurniture(ctx, f, s) })
+  }
+  for (const w of WALLS) {
+    if (w.w >= w.h) items.push({ y: w.y + w.h, draw: () => drawWall(ctx, w) })
   }
   for (const o of OBJECTS) {
     if (o.kind === 'tvscreen') continue // drawn inside the tv stand
@@ -65,7 +69,9 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
   // laser dots over everything on the floor
   for (const l of s.lasers) drawLaser(ctx, l.x, l.y, s.time)
 
-  drawWalls(ctx)
+  // vertical walls occlude everything pressed against them
+  for (const w of WALLS) if (w.w < w.h) drawWall(ctx, w)
+
   drawFx(ctx)
 
   if (s.interact) promptBubble(ctx, s.interact.x, s.interact.y - 30, s.interact.prompt)
@@ -149,18 +155,16 @@ function drawFloors(ctx: CanvasRenderingContext2D) {
   }
 }
 
-function drawWalls(ctx: CanvasRenderingContext2D) {
-  for (const w of WALLS) {
-    ctx.fillStyle = '#6b5a4a'
-    ctx.fillRect(w.x, w.y, w.w, w.h)
-    ctx.strokeStyle = INK; ctx.lineWidth = 3.5
-    ctx.strokeRect(w.x, w.y, w.w, w.h)
-    // brick hatching
-    ctx.strokeStyle = 'rgba(20,16,12,0.25)'; ctx.lineWidth = 1.5
-    const step = 26
-    for (let x = w.x + step; x < w.x + w.w; x += step) { ctx.beginPath(); ctx.moveTo(x, w.y + 2); ctx.lineTo(x, w.y + w.h - 2); ctx.stroke() }
-    for (let y = w.y + step; y < w.y + w.h; y += step) { ctx.beginPath(); ctx.moveTo(w.x + 2, y); ctx.lineTo(w.x + w.w - 2, y); ctx.stroke() }
-  }
+function drawWall(ctx: CanvasRenderingContext2D, w: { x: number; y: number; w: number; h: number }) {
+  ctx.fillStyle = '#6b5a4a'
+  ctx.fillRect(w.x, w.y, w.w, w.h)
+  ctx.strokeStyle = INK; ctx.lineWidth = 3.5
+  ctx.strokeRect(w.x, w.y, w.w, w.h)
+  // brick hatching
+  ctx.strokeStyle = 'rgba(20,16,12,0.25)'; ctx.lineWidth = 1.5
+  const step = 26
+  for (let x = w.x + step; x < w.x + w.w; x += step) { ctx.beginPath(); ctx.moveTo(x, w.y + 2); ctx.lineTo(x, w.y + w.h - 2); ctx.stroke() }
+  for (let y = w.y + step; y < w.y + w.h; y += step) { ctx.beginPath(); ctx.moveTo(w.x + 2, y); ctx.lineTo(w.x + w.w - 2, y); ctx.stroke() }
 }
 
 function drawDoors(ctx: CanvasRenderingContext2D) {

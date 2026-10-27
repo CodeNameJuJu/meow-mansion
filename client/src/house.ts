@@ -99,17 +99,17 @@ export const FURNITURE: Furniture[] = [
   { id: 'litter', kind: 'litter', label: 'the litter box', rect: { x: 360, y: 580, w: 150, h: 90 }, solid: false, walkable: true, autoPose: 'eat', interact: 'dig', prompt: 'dig. dig dig dig.' },
 
   // garden
-  { id: 'tree', kind: 'tree', label: 'the tree', rect: { x: 125, y: 800, w: 34, h: 50 }, solid: true, interact: 'rustle', prompt: 'attack the tree' },
+  { id: 'tree', kind: 'tree', label: 'the tree', rect: { x: 150, y: 930, w: 34, h: 50 }, solid: true, interact: 'rustle', prompt: 'attack the tree' },
   { id: 'bush', kind: 'bush', label: 'a suspicious bush', rect: { x: 380, y: 1000, w: 70, h: 55 }, solid: true, interact: 'rustle', prompt: 'rustle the bush' },
   { id: 'birdbath', kind: 'birdbath', label: 'the birdbath', rect: { x: 330, y: 810, w: 44, h: 40 }, solid: true, interact: 'splash', prompt: 'splash the birdbath' },
 
   // living room
-  { id: 'tvstand', kind: 'tvstand', label: 'the TV', rect: { x: 1040, y: 480, w: 170, h: 55 }, solid: true, interact: 'tv', prompt: 'flick the TV' },
+  { id: 'tvstand', kind: 'tvstand', label: 'the TV', rect: { x: 1040, y: 495, w: 170, h: 55 }, solid: true, interact: 'tv', prompt: 'flick the TV' },
   { id: 'couch', kind: 'couch', label: 'the couch', rect: { x: 990, y: 650, w: 290, h: 85 }, solid: false, walkable: true, autoPose: 'sit', interact: 'scratch', prompt: 'shred the couch' },
   { id: 'coffeetable', kind: 'coffeetable', label: 'the coffee table', rect: { x: 1040, y: 560, w: 190, h: 45 }, solid: false, walkable: true },
   { id: 'bookshelf', kind: 'bookshelf', label: 'the bookshelf', rect: { x: 780, y: 480, w: 200, h: 55 }, solid: true },
   { id: 'post', kind: 'post', label: 'the scratching post', rect: { x: 1480, y: 950, w: 55, h: 55 }, solid: true, interact: 'scratchgood', prompt: 'scratch (legally)' },
-  { id: 'plant', kind: 'plant', label: 'the houseplant', rect: { x: 1500, y: 470, w: 55, h: 70 }, solid: true, interact: 'chomp', prompt: 'chew a leaf' },
+  { id: 'plant', kind: 'plant', label: 'the houseplant', rect: { x: 1500, y: 500, w: 55, h: 70 }, solid: true, interact: 'chomp', prompt: 'chew a leaf' },
   { id: 'rugL', kind: 'rug', label: 'the big rug', rect: { x: 980, y: 800, w: 260, h: 150 }, solid: false, flat: true },
   { id: 'runner', kind: 'runner', label: 'the runner', rect: { x: 575, y: 300, w: 150, h: 600 }, solid: false, flat: true },
 ]
