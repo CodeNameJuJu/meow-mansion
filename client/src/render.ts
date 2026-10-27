@@ -271,6 +271,20 @@ function drawWall(ctx: CanvasRenderingContext2D, w: Rect, s: RenderState) {
       ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke()
     }
   }
+  // cap the open ends — door gaps and wall ends otherwise render hollow
+  ctx.fillStyle = '#57483a'
+  if (w.w >= w.h) {
+    for (const ex of [w.x, w.x + w.w]) {
+      quad(ctx, [iso(ex, w.y, 0), iso(ex, w.y + w.h, 0), iso(ex, w.y + w.h, h), iso(ex, w.y, h)])
+      ctx.fill(); outline(ctx, 3)
+    }
+  } else {
+    for (const ey of [w.y, w.y + w.h]) {
+      quad(ctx, [iso(w.x, ey, 0), iso(w.x + w.w, ey, 0), iso(w.x + w.w, ey, h), iso(w.x, ey, h)])
+      ctx.fill(); outline(ctx, 3)
+    }
+  }
+
   // windows on this wall's south face
   if (!stub && w.w >= w.h) {
     for (const win of WINDOWS) {
