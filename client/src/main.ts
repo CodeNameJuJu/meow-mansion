@@ -210,7 +210,6 @@ initInput(
 canvas.addEventListener('mousemove', (e) => {
   if (document.pointerLockElement === canvas) {
     cam.yaw += e.movementX * 0.0032
-    cam.pitch = Math.min(0.95, Math.max(0.15, cam.pitch - e.movementY * 0.0025))
   }
 })
 canvas.addEventListener('click', () => {
