@@ -48,7 +48,6 @@ let currentRoom = ''
 let interactTarget: InteractTarget | null = null
 let eatUntil = 0
 let laserOn = false
-let mouse = { x: 0, y: 0 }
 let lastPosSend = 0, lastPos = { x: 0, y: 0, facing: 'down' as Facing, pose: 'stand' as Pose }
 let lastLaserSend = 0
 let ambientTimer = 0
@@ -208,7 +207,15 @@ initInput(
   },
 )
 
-canvas.addEventListener('mousemove', (e) => { mouse = { x: e.clientX, y: e.clientY } })
+canvas.addEventListener('mousemove', (e) => {
+  if (document.pointerLockElement === canvas) {
+    cam.yaw += e.movementX * 0.0032
+    cam.pitch = Math.min(0.95, Math.max(0.15, cam.pitch - e.movementY * 0.0025))
+  }
+})
+canvas.addEventListener('click', () => {
+  if (playing && document.pointerLockElement !== canvas) canvas.requestPointerLock()
+})
 canvas.addEventListener('wheel', (e) => {
   cam.dist = Math.min(420, Math.max(120, cam.dist + e.deltaY * 0.35))
 })
@@ -218,8 +225,9 @@ canvas.addEventListener('mousedown', (e) => {
 })
 
 function mouseWorld() {
-  // unproject the cursor onto the floor; above the horizon, aim far ahead
-  return unproject(mouse.x, mouse.y)
+  // with pointer lock there is no cursor — the laser aims where the camera
+  // looks: unproject a point just below centre-screen onto the floor
+  return unproject(vw / 2, vh * 0.6)
     ?? { x: cam.x + Math.cos(cam.yaw) * 400, y: cam.y + Math.sin(cam.yaw) * 400 }
 }
 
@@ -335,14 +343,7 @@ function update(dt: number) {
 
   interactTarget = nearestInteractable(me.x, me.y)
 
-  // the mouse steers the camera: cursor toward an edge turns the view,
-  // cursor height tilts it; a dead zone in the middle keeps it steady
-  const dead = vw * 0.10
-  const off = mouse.x - cam.cx0
-  if (Math.abs(off) > dead) {
-    cam.yaw += ((off - Math.sign(off) * dead) / (cam.cx0 - dead)) * 2.8 * dt
-  }
-  cam.pitch = Math.min(0.85, Math.max(0.2, 0.5 + (mouse.y / vh - 0.5) * 0.25))
+  // pointer-lock mouselook handles yaw+pitch in the mousemove handler
   cam.focal = vw
   cam.cx0 = vw / 2
   cam.hor = vh * 0.40
