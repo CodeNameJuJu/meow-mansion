@@ -335,12 +335,14 @@ function update(dt: number) {
 
   interactTarget = nearestInteractable(me.x, me.y)
 
-  // camera rides low behind the cat, yawing to match its facing
-  const FA: Record<Facing, number> = { right: 0, down: Math.PI / 2, left: Math.PI, up: -Math.PI / 2 }
-  let dyaw = FA[me.facing] - cam.yaw
-  while (dyaw > Math.PI) dyaw -= Math.PI * 2
-  while (dyaw < -Math.PI) dyaw += Math.PI * 2
-  cam.yaw += dyaw * Math.min(1, dt * 4)
+  // the mouse steers the camera: cursor toward an edge turns the view,
+  // cursor height tilts it; a dead zone in the middle keeps it steady
+  const dead = vw * 0.10
+  const off = mouse.x - cam.cx0
+  if (Math.abs(off) > dead) {
+    cam.yaw += ((off - Math.sign(off) * dead) / (cam.cx0 - dead)) * 2.8 * dt
+  }
+  cam.pitch = Math.min(0.85, Math.max(0.2, 0.5 + (mouse.y / vh - 0.5) * 0.25))
   cam.focal = vw
   cam.cx0 = vw / 2
   cam.hor = vh * 0.40
