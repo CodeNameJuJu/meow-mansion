@@ -37,11 +37,14 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
   drawFloors(ctx)
   drawDoors(ctx)
   drawWindows(ctx, s.time)
+  // flat floor decor (rugs, runners) sits under everything else
+  for (const f of FURNITURE) if (f.flat) drawFurniture(ctx, f, s)
 
   // painter's sort: furniture + cats + objects by baseline y
   interface Item { y: number; draw: () => void }
   const items: Item[] = []
   for (const f of FURNITURE) {
+    if (f.flat) continue
     items.push({ y: f.rect.y + f.rect.h, draw: () => drawFurniture(ctx, f, s) })
   }
   for (const o of OBJECTS) {

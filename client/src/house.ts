@@ -71,6 +71,7 @@ export interface Furniture {
   rect: Rect
   solid: boolean
   walkable?: boolean     // cats can stand on it (tables, bed, couch)
+  flat?: boolean         // floor decor — always drawn under entities, never sorted
   autoPose?: 'sit' | 'sleep' | 'eat' // pose while idling inside the rect
   interact?: InteractKind
   prompt?: string        // shown in the "E" bubble
@@ -89,7 +90,7 @@ export const FURNITURE: Furniture[] = [
   { id: 'bed', kind: 'bed', label: 'the bed', rect: { x: 1300, y: 90, w: 270, h: 170 }, solid: false, walkable: true, autoPose: 'sleep' },
   { id: 'dresser', kind: 'dresser', label: 'the dresser', rect: { x: 790, y: 80, w: 170, h: 60 }, solid: true },
   { id: 'nightstand', kind: 'nightstand', label: 'the lamp', rect: { x: 1210, y: 90, w: 70, h: 70 }, solid: true, interact: 'lamp', prompt: 'flick the lamp' },
-  { id: 'rugB', kind: 'rug', label: 'a rug', rect: { x: 980, y: 240, w: 220, h: 120 }, solid: false },
+  { id: 'rugB', kind: 'rug', label: 'a rug', rect: { x: 980, y: 240, w: 220, h: 120 }, solid: false, flat: true },
 
   // bathroom
   { id: 'sink', kind: 'sink', label: 'the sink', rect: { x: 80, y: 470, w: 80, h: 60 }, solid: true, interact: 'splash', prompt: 'bat at the tap' },
@@ -109,8 +110,8 @@ export const FURNITURE: Furniture[] = [
   { id: 'bookshelf', kind: 'bookshelf', label: 'the bookshelf', rect: { x: 780, y: 480, w: 200, h: 55 }, solid: true },
   { id: 'post', kind: 'post', label: 'the scratching post', rect: { x: 1480, y: 950, w: 55, h: 55 }, solid: true, interact: 'scratchgood', prompt: 'scratch (legally)' },
   { id: 'plant', kind: 'plant', label: 'the houseplant', rect: { x: 1500, y: 470, w: 55, h: 70 }, solid: true, interact: 'chomp', prompt: 'chew a leaf' },
-  { id: 'rugL', kind: 'rug', label: 'the big rug', rect: { x: 980, y: 800, w: 260, h: 150 }, solid: false },
-  { id: 'runner', kind: 'runner', label: 'the runner', rect: { x: 575, y: 300, w: 150, h: 600 }, solid: false },
+  { id: 'rugL', kind: 'rug', label: 'the big rug', rect: { x: 980, y: 800, w: 260, h: 150 }, solid: false, flat: true },
+  { id: 'runner', kind: 'runner', label: 'the runner', rect: { x: 575, y: 300, w: 150, h: 600 }, solid: false, flat: true },
 ]
 
 // -------------------------------------------- knockable/toggle objects ---
