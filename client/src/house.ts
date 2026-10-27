@@ -90,8 +90,8 @@ export const FURNITURE: Furniture[] = [
 
   // bedroom
   { id: 'bed', kind: 'bed', label: 'the bed', rect: { x: 1300, y: 90, w: 270, h: 170 }, h: 28, solid: false, walkable: true, autoPose: 'sleep' },
-  { id: 'dresser', kind: 'dresser', label: 'the dresser', rect: { x: 790, y: 80, w: 170, h: 60 }, h: 60, solid: true },
-  { id: 'nightstand', kind: 'nightstand', label: 'the lamp', rect: { x: 1210, y: 90, w: 70, h: 70 }, h: 45, solid: true, interact: 'lamp', prompt: 'flick the lamp' },
+  { id: 'dresser', kind: 'dresser', label: 'the dresser', rect: { x: 810, y: 160, w: 170, h: 60 }, h: 60, solid: true },
+  { id: 'nightstand', kind: 'nightstand', label: 'the lamp', rect: { x: 1210, y: 110, w: 70, h: 70 }, h: 45, solid: true, interact: 'lamp', prompt: 'flick the lamp' },
   { id: 'rugB', kind: 'rug', label: 'a rug', rect: { x: 980, y: 240, w: 220, h: 120 }, h: 0, solid: false, flat: true },
 
   // bathroom
@@ -109,7 +109,7 @@ export const FURNITURE: Furniture[] = [
   { id: 'tvstand', kind: 'tvstand', label: 'the TV', rect: { x: 1040, y: 495, w: 170, h: 55 }, h: 45, solid: true, interact: 'tv', prompt: 'flick the TV' },
   { id: 'couch', kind: 'couch', label: 'the couch', rect: { x: 990, y: 650, w: 290, h: 85 }, h: 30, solid: false, walkable: true, autoPose: 'sit', interact: 'scratch', prompt: 'shred the couch' },
   { id: 'coffeetable', kind: 'coffeetable', label: 'the coffee table', rect: { x: 1040, y: 560, w: 190, h: 45 }, h: 30, solid: false, walkable: true },
-  { id: 'bookshelf', kind: 'bookshelf', label: 'the bookshelf', rect: { x: 780, y: 480, w: 200, h: 55 }, h: 70, solid: true },
+  { id: 'bookshelf', kind: 'bookshelf', label: 'the bookshelf', rect: { x: 780, y: 545, w: 200, h: 55 }, h: 70, solid: true },
   { id: 'post', kind: 'post', label: 'the scratching post', rect: { x: 1480, y: 950, w: 55, h: 55 }, h: 55, solid: true, interact: 'scratchgood', prompt: 'scratch (legally)' },
   { id: 'plant', kind: 'plant', label: 'the houseplant', rect: { x: 1500, y: 500, w: 55, h: 70 }, h: 26, solid: true, interact: 'chomp', prompt: 'chew a leaf' },
   { id: 'rugL', kind: 'rug', label: 'the big rug', rect: { x: 980, y: 800, w: 260, h: 150 }, h: 0, solid: false, flat: true },
@@ -123,13 +123,13 @@ export interface WorldObject { id: string; x: number; y: number; z: number; kind
 export const OBJECTS: WorldObject[] = [
   { id: 'vase1', x: 372, y: 262, z: 42, kind: 'vase' },
   { id: 'cup1', x: 428, y: 292, z: 42, kind: 'cup' },
-  { id: 'cup2', x: 825, y: 102, z: 60, kind: 'cup' },
-  { id: 'frame1', x: 890, y: 102, z: 60, kind: 'frame' },
-  { id: 'books1', x: 862, y: 494, z: 70, kind: 'books' },
+  { id: 'cup2', x: 845, y: 162, z: 60, kind: 'cup' },
+  { id: 'frame1', x: 910, y: 162, z: 60, kind: 'frame' },
+  { id: 'books1', x: 862, y: 559, z: 70, kind: 'books' },
   { id: 'mug1', x: 1128, y: 576, z: 30, kind: 'mug' },
-  { id: 'tp', x: 207, y: 482, z: 52, kind: 'tp' },
+  { id: 'tp', x: 250, y: 540, z: 0, kind: 'tp' },
   // toggles (drawn but not knockable)
-  { id: 'lamp1', x: 1245, y: 108, z: 45, kind: 'lamp' },
+  { id: 'lamp1', x: 1245, y: 128, z: 45, kind: 'lamp' },
   { id: 'tv1', x: 1125, y: 507, z: 0, kind: 'tvscreen' },
 ]
 export const OBJECT_BY_ID = new Map(OBJECTS.map((o) => [o.id, o]))
