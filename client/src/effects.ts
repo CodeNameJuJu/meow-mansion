@@ -1,9 +1,9 @@
 // Fire-and-forget comic effects: starbursts, speech bubbles, hearts,
 // dust puffs, paper scraps, broken-shard debris, stink lines, motion lines.
-// Positions are world coords — projected to iso at draw time.
+// Positions are world coords — projected to screen at draw time.
 
 import { INK, burst, speechBubble } from './comic'
-import { iso } from './iso'
+import { project, cam } from './cam'
 
 export interface Fx {
   kind: 'burst' | 'bubble' | 'hearts' | 'zzz' | 'puff' | 'shards' | 'stink' | 'paper' | 'splash' | 'lines' | 'angry'
@@ -43,12 +43,14 @@ export function updateFx(dt: number, resolvePos: (id: string) => { x: number; y:
 
 export function drawFx(ctx: CanvasRenderingContext2D) {
   for (const f of fx) {
-    const p = iso(f.x, f.y)
-    const fx_ = p.sx + (f.ox ?? 0)
-    const fy_ = p.sy + (f.oy ?? 0)
+    const p = project(f.x, f.y)
+    if (!p) continue
+    const dScale = Math.max(0.3, Math.min(3, cam.focal / p.depth))
+    const fx_ = p.sx + (f.ox ?? 0) * dScale
+    const fy_ = p.sy + (f.oy ?? 0) * dScale
     const t = f.t / f.ttl
     switch (f.kind) {
-      case 'burst': burst(ctx, fx_, fy_, f.ttl > 1.2 ? 88 : 70, f.text ?? 'POW!', t, f.text === 'HISS!' ? '#e24141' : '#ffd23f'); break
+      case 'burst': burst(ctx, fx_, fy_, (f.ttl > 1.2 ? 88 : 70) * Math.min(2, dScale), f.text ?? 'POW!', t, f.text === 'HISS!' ? '#e24141' : '#ffd23f'); break
       case 'bubble': speechBubble(ctx, fx_, fy_, f.text ?? '', Math.min(1, (1 - t) * 6, t * 8)); break
       case 'hearts': {
         for (let i = 0; i < 4; i++) {
