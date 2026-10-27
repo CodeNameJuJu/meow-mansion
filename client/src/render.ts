@@ -82,7 +82,6 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
   drawBase(ctx)
   drawFloors(ctx)
   drawThresholds(ctx)
-  drawWindows(ctx)
   // flat floor decor (rugs, runners) sits under everything else
   for (const f of FURNITURE) if (f.flat) drawFlat(ctx, f)
 
@@ -93,7 +92,7 @@ export function render(ctx: CanvasRenderingContext2D, s: RenderState) {
     items.push({ r: f.rect, x: 0, y: 0, draw: () => drawFurniture(ctx, f, s) })
   }
   for (const w of WALLS) {
-    items.push({ r: w, x: 0, y: 0, draw: () => drawWall(ctx, w) })
+    items.push({ r: w, x: 0, y: 0, draw: () => drawWall(ctx, w, s) })
   }
   for (const o of OBJECTS) {
     if (o.kind === 'tvscreen') continue // drawn inside the tv stand
@@ -134,21 +133,27 @@ function frontOf(a: { r?: Rect; x: number; y: number }, b: { r?: Rect; x: number
 // -------------------------------------------------------------- base -----
 
 function drawBase(ctx: CanvasRenderingContext2D) {
-  // paper "world" diamond with a comic drop shadow — the house floats on it
-  const m = 40
+  // the whole panel is comic paper, and the house sits on a raised "page
+  // board" diamond with a drop shadow — no void eating half the screen
+  ctx.fillStyle = '#f7f1de'
+  ctx.fillRect(-1400, -400, 3600, 2200)
+  ctx.fillStyle = halftone(ctx, 'rgba(20,16,12,0.09)', 12, 1.6)
+  ctx.fillRect(-1400, -400, 3600, 2200)
+
+  const m = 160
   const pts = [iso(-m, -m), iso(1680 + m, -m), iso(1680 + m, 1160 + m), iso(-m, 1160 + m)]
   ctx.save()
-  ctx.translate(16, 18)
-  quad(ctx, pts); ctx.fillStyle = 'rgba(20,16,12,0.4)'; ctx.fill()
+  ctx.translate(18, 20)
+  quad(ctx, pts); ctx.fillStyle = 'rgba(20,16,12,0.35)'; ctx.fill()
   ctx.restore()
   quad(ctx, pts)
   ctx.fillStyle = '#e8dfc8'; ctx.fill()
   outline(ctx, 6)
-  // faint halftone on the paper margin
+  // faint halftone on the board margin
   ctx.save()
   quad(ctx, pts); ctx.clip()
-  ctx.fillStyle = halftone(ctx, 'rgba(20,16,12,0.10)', 12, 1.6)
-  ctx.fillRect(-1200, -100, 2900, 1700)
+  ctx.fillStyle = halftone(ctx, 'rgba(20,16,12,0.08)', 12, 1.6)
+  ctx.fillRect(-1400, -400, 3600, 2200)
   ctx.restore()
 }
 
@@ -228,24 +233,60 @@ function drawFloors(ctx: CanvasRenderingContext2D) {
   }
 }
 
-const WALL_H_INNER = 45
-const WALL_H_OUTER = 78
+const WALL_H_INNER = 55
+const WALL_H_OUTER = 90
+const WALL_H_STUB = 14
 const wallH = (w: Rect) =>
   w.x <= 40 || w.y <= 40 || w.x + w.w >= 1640 || w.y + w.h >= 1120 ? WALL_H_OUTER : WALL_H_INNER
 
-function drawWall(ctx: CanvasRenderingContext2D, w: Rect) {
-  const h = wallH(w)
+// Sims-style wall cutaway: a wall that would hide YOUR cat drops to a stub
+// while the cat is close behind it, so you never lose sight of yourself.
+function wallOccludesMe(w: Rect, mx: number, my: number): boolean {
+  if (w.w >= w.h) {
+    return my < w.y + w.h && my > w.y - 90 && mx > w.x - 40 && mx < w.x + w.w + 40
+  }
+  return mx < w.x + w.w && mx > w.x - 90 && my > w.y - 40 && my < w.y + w.h + 40
+}
+
+// windows sit on the visible south faces of north-side walls
+const WINDOWS: { edgeY: number; x0: number; x1: number; z0: number; z1: number }[] = [
+  { edgeY: 60, x0: 280, x1: 380, z0: 22, z1: 56 },    // kitchen
+  { edgeY: 60, x0: 1420, x1: 1560, z0: 22, z1: 56 },  // bedroom
+  { edgeY: 460, x0: 1480, x1: 1620, z0: 8, z1: 38 },  // living room (divider wall)
+]
+
+function drawWall(ctx: CanvasRenderingContext2D, w: Rect, s: RenderState) {
+  const mePos = s.cats.find((c) => c.id === s.myId)
+  const stub = mePos && wallOccludesMe(w, mePos.x, mePos.y)
+  const h = stub ? WALL_H_STUB : wallH(w)
   box3(ctx, w, h, { top: '#8a745f', s: '#6b5a4a', e: '#57483a' })
   // a few brick courses on the visible faces
   ctx.strokeStyle = 'rgba(20,16,12,0.25)'; ctx.lineWidth = 1.5
-  if (w.w >= w.h) {
-    for (const z of [h * 0.33, h * 0.66]) {
+  for (const z of [h * 0.33, h * 0.66]) {
+    if (w.w >= w.h) {
       const a = iso(w.x, w.y + w.h, z), b = iso(w.x + w.w, w.y + w.h, z)
       ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke()
-    }
-  } else {
-    for (const z of [h * 0.33, h * 0.66]) {
+    } else {
       const a = iso(w.x + w.w, w.y, z), b = iso(w.x + w.w, w.y + w.h, z)
+      ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke()
+    }
+  }
+  // windows on this wall's south face
+  if (!stub && w.w >= w.h) {
+    for (const win of WINDOWS) {
+      if (w.y + w.h !== win.edgeY) continue
+      const x0 = Math.max(win.x0, w.x), x1 = Math.min(win.x1, w.x + w.w)
+      if (x0 >= x1) continue
+      const z0 = Math.min(win.z0, h - 6), z1 = Math.min(win.z1, h - 6)
+      quad(ctx, [
+        iso(x0, win.edgeY, z1), iso(x1, win.edgeY, z1),
+        iso(x1, win.edgeY, z0), iso(x0, win.edgeY, z0),
+      ])
+      ctx.fillStyle = '#bcdcf0'; ctx.fill()
+      outline(ctx, 3)
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5
+      const a = iso(x0 + (x1 - x0) * 0.3, win.edgeY, z1 - 5)
+      const b = iso(x0 + (x1 - x0) * 0.15, win.edgeY, z0 + 5)
       ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke()
     }
   }
@@ -260,29 +301,7 @@ function drawThresholds(ctx: CanvasRenderingContext2D) {
   for (const r of gaps) topQuad(ctx, r, 1, '#c4a172', 2)
 }
 
-// windows sit on the visible south faces of north-side walls
-const WINDOWS: { edgeY: number; x0: number; x1: number; z0: number; z1: number }[] = [
-  { edgeY: 60, x0: 280, x1: 380, z0: 22, z1: 56 },    // kitchen
-  { edgeY: 60, x0: 1420, x1: 1560, z0: 22, z1: 56 },  // bedroom
-  { edgeY: 460, x0: 1480, x1: 1620, z0: 8, z1: 38 },  // living room (divider wall)
-]
-
-function drawWindows(ctx: CanvasRenderingContext2D) {
-  for (const win of WINDOWS) {
-    const pts = [
-      iso(win.x0, win.edgeY, win.z1), iso(win.x1, win.edgeY, win.z1),
-      iso(win.x1, win.edgeY, win.z0), iso(win.x0, win.edgeY, win.z0),
-    ]
-    quad(ctx, pts)
-    ctx.fillStyle = '#bcdcf0'; ctx.fill()
-    outline(ctx, 3)
-    // shine
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5
-    const a = iso(win.x0 + (win.x1 - win.x0) * 0.3, win.edgeY, win.z1 - 6)
-    const b = iso(win.x0 + (win.x1 - win.x0) * 0.15, win.edgeY, win.z0 + 6)
-    ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke()
-  }
-}
+// ------------------------------------------------------------ furniture --
 
 // ------------------------------------------------------------ furniture --
 

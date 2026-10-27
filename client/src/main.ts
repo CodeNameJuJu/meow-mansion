@@ -343,7 +343,7 @@ function update(dt: number) {
 function draw() {
   const dpr = Math.min(2, window.devicePixelRatio || 1)
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  ctx.fillStyle = '#14100c'
+  ctx.fillStyle = '#f7f1de'
   ctx.fillRect(0, 0, vw, vh)
 
   if (!playing || !me) return
