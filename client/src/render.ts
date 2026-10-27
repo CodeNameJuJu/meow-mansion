@@ -127,13 +127,10 @@ function faceRect(out: Drawable[], ctx: CanvasRenderingContext2D, r: Rect, face:
   pushPoly(out, ctx, pts, fill, 2.5)
 }
 
-/** Which horizontal face of a rect faces the camera most. */
-function camSide(r: Rect): 'n' | 's' | 'e' | 'w' {
-  const cx = r.x + r.w / 2, cy = r.y + r.h / 2
-  const dx = Math.abs(cam.x - cx), dy = Math.abs(cam.y - cy)
-  if (dy >= dx) return cam.y > cy ? 's' : 'n'
-  return cam.x > cx ? 'e' : 'w'
-}
+/** Is the given outward face of a rect visible from the camera? */
+const faceVisible = (r: Rect, face: 'n' | 's' | 'e' | 'w') =>
+  face === 's' ? cam.y > r.y + r.h : face === 'n' ? cam.y < r.y
+    : face === 'e' ? cam.x > r.x + r.w : cam.x < r.x
 
 interface BoxCols { top: string; s: string; e: string; n?: string; w?: string }
 
@@ -197,12 +194,14 @@ function drawFurniture(ctx: CanvasRenderingContext2D, out: Drawable[], f: Furnit
   switch (f.kind) {
     case 'fridge': {
       box(out, ctx, r, 85, 0, WHITE)
-      const side = camSide(r)
-      if (side === 's' || side === 'n') faceRect(out, ctx, r, side, 0, 1, 52, 53, INK)
-      faceRect(out, ctx, r, side, 0.3, 0.34, 56, 78, INK)
-      faceRect(out, ctx, r, side, 0.62, 0.66, 56, 78, INK)
-      faceRect(out, ctx, r, side, 0.68, 0.78, 64, 72, '#e4574f')
-      faceRect(out, ctx, r, side, 0.52, 0.6, 58, 64, '#5aa9e6')
+      // doors, handles and magnets live on the south (front) face only
+      if (faceVisible(r, 's')) {
+        faceRect(out, ctx, r, 's', 0, 1, 52, 53, INK)
+        faceRect(out, ctx, r, 's', 0.3, 0.34, 56, 78, INK)
+        faceRect(out, ctx, r, 's', 0.62, 0.66, 56, 78, INK)
+        faceRect(out, ctx, r, 's', 0.68, 0.78, 64, 72, '#e4574f')
+        faceRect(out, ctx, r, 's', 0.52, 0.6, 58, 64, '#5aa9e6')
+      }
       break
     }
     case 'counter':
@@ -226,15 +225,17 @@ function drawFurniture(ctx: CanvasRenderingContext2D, out: Drawable[], f: Furnit
       break
     case 'dresser': case 'nightstand': {
       box(out, ctx, r, f.h, 0, WOOD)
-      const side = camSide(r)
-      const rows = f.kind === 'dresser' ? 3 : 2
-      for (let i = 1; i < rows; i++) {
-        const zz = (f.h * i) / rows
-        faceRect(out, ctx, r, side, 0.06, 0.94, zz - 1, zz + 1, INK)
-      }
-      for (let i = 0; i < rows; i++) {
-        const zz = (f.h * (i + 0.5)) / rows
-        faceRect(out, ctx, r, side, 0.47, 0.53, zz - 2, zz + 2, '#f2c14e')
+      // drawer lines + knobs on the front (south) face only
+      if (faceVisible(r, 's')) {
+        const rows = f.kind === 'dresser' ? 3 : 2
+        for (let i = 1; i < rows; i++) {
+          const zz = (f.h * i) / rows
+          faceRect(out, ctx, r, 's', 0.06, 0.94, zz - 1, zz + 1, INK)
+        }
+        for (let i = 0; i < rows; i++) {
+          const zz = (f.h * (i + 0.5)) / rows
+          faceRect(out, ctx, r, 's', 0.47, 0.53, zz - 2, zz + 2, '#f2c14e')
+        }
       }
       break
     }
@@ -276,15 +277,15 @@ function drawFurniture(ctx: CanvasRenderingContext2D, out: Drawable[], f: Furnit
       box(out, ctx, r, 30, 0, WOOD)
       const tv = { x: r.x + 10, y: r.y + 4, w: r.w - 20, h: r.h - 8 }
       box(out, ctx, tv, 62, 30, { top: '#3a3a40', s: '#26262c', e: '#1c1c22' })
-      const side = camSide(tv)
-      if (side === 's' || side === 'e' || side === 'n' || side === 'w') {
-        faceRect(out, ctx, tv, side, 0.08, 0.92, 36, 86, '#0e0e12')
+      // the screen is on the tv's south (room-facing) side only
+      if (faceVisible(tv, 's')) {
+        faceRect(out, ctx, tv, 's', 0.08, 0.92, 36, 86, '#0e0e12')
         if (s.toggles.tv1) {
           const g = 0.5 + 0.5 * Math.sin(s.time * 9)
-          faceRect(out, ctx, tv, side, 0.1, 0.9, 38, 84, `rgb(${40 + g * 40},${60 + g * 50},${90 + g * 60})`)
+          faceRect(out, ctx, tv, 's', 0.1, 0.9, 38, 84, `rgb(${40 + g * 40},${60 + g * 50},${90 + g * 60})`)
           for (let i = 0; i < 4; i++) {
             const u0 = 0.15 + ((i * 0.37 + s.time * 2.1) % 0.7)
-            faceRect(out, ctx, tv, side, u0, u0 + 0.08, 44 + ((i * 17) % 30), 50 + ((i * 17) % 30), 'rgba(255,255,255,0.5)')
+            faceRect(out, ctx, tv, 's', u0, u0 + 0.08, 44 + ((i * 17) % 30), 50 + ((i * 17) % 30), 'rgba(255,255,255,0.5)')
           }
         }
       }
@@ -313,10 +314,13 @@ function drawFurniture(ctx: CanvasRenderingContext2D, out: Drawable[], f: Furnit
       break
     case 'bookshelf': {
       box(out, ctx, r, f.h, 0, WOOD)
-      const side = camSide(r)
-      for (let i = 0; i < 12; i++) {
-        const u0 = 0.05 + (i * 0.9) / 12
-        faceRect(out, ctx, r, side, u0, u0 + 0.055, 4, 4 + 26 + (i % 3) * 6, BOOK_COLORS[i % BOOK_COLORS.length])
+      // book spines live on the south (front) face only — from behind it's
+      // just the back of a bookcase
+      if (faceVisible(r, 's')) {
+        for (let i = 0; i < 12; i++) {
+          const u0 = 0.05 + (i * 0.9) / 12
+          faceRect(out, ctx, r, 's', u0, u0 + 0.055, 4, 4 + 26 + (i % 3) * 6, BOOK_COLORS[i % BOOK_COLORS.length])
+        }
       }
       break
     }
