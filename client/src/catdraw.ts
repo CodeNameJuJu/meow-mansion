@@ -68,16 +68,16 @@ function bodyPattern(ctx: CanvasRenderingContext2D, cat: CatCustom, cx: number, 
 
 function ear(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, color: string, inner = true) {
   ctx.beginPath()
-  ctx.moveTo(x - 8 * dir, y + 5)
-  ctx.lineTo(x + 1 * dir, y - 14)
-  ctx.lineTo(x + 9 * dir, y + 4)
+  ctx.moveTo(x - 6 * dir, y + 4)
+  ctx.lineTo(x + 1 * dir, y - 10)
+  ctx.lineTo(x + 7 * dir, y + 3)
   ctx.closePath()
   fillStroke(ctx, color, 3.5)
   if (inner) {
     ctx.beginPath()
-    ctx.moveTo(x - 4 * dir, y + 3)
-    ctx.lineTo(x + 1 * dir, y - 9)
-    ctx.lineTo(x + 5 * dir, y + 2)
+    ctx.moveTo(x - 3 * dir, y + 2)
+    ctx.lineTo(x + 1 * dir, y - 6)
+    ctx.lineTo(x + 4 * dir, y + 1)
     ctx.closePath()
     ctx.fillStyle = '#f2a0b0'
     ctx.fill()
