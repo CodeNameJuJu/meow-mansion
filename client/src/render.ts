@@ -64,7 +64,9 @@ function drawPoly(ctx: CanvasRenderingContext2D, pts: ScreenPt[] | null, fill: s
 function pushPoly(out: Drawable[], ctx: CanvasRenderingContext2D, pts: [number, number, number][], fill: string, w = 3) {
   const pp = projPoly(pts)
   if (!pp) return
-  const depth = Math.max(...pp.map((p) => p.depth))
+  // sort by centroid — max-vertex lets a long wall's far end jump in front of
+  // things standing behind its middle
+  const depth = pp.reduce((sum, p) => sum + p.depth, 0) / pp.length
   out.push({ depth, draw: () => drawPoly(ctx, pp, fill, w) })
 }
 
@@ -161,20 +163,29 @@ const WINDOWS: { edgeY: number; x0: number; x1: number; z0: number; z1: number }
 ]
 
 function drawWall(ctx: CanvasRenderingContext2D, out: Drawable[], w: Rect, h: number) {
-  // top face
-  pushPoly(out, ctx, [[w.x, w.y, h], [w.x + w.w, w.y, h], [w.x + w.w, w.y + w.h, h], [w.x, w.y + w.h, h]], WALL_TOP, 3.5)
-  // side faces — only the ones the camera can see
-  if (cam.y > w.y + w.h) pushPoly(out, ctx, [[w.x, w.y + w.h, 0], [w.x + w.w, w.y + w.h, 0], [w.x + w.w, w.y + w.h, h], [w.x, w.y + w.h, h]], WALL_S, 3.5)
-  if (cam.y < w.y) pushPoly(out, ctx, [[w.x + w.w, w.y, 0], [w.x, w.y, 0], [w.x, w.y, h], [w.x + w.w, w.y, h]], WALL_S, 3.5)
-  if (cam.x > w.x + w.w) pushPoly(out, ctx, [[w.x + w.w, w.y, 0], [w.x + w.w, w.y + w.h, 0], [w.x + w.w, w.y + w.h, h], [w.x + w.w, w.y, h]], WALL_E, 3.5)
-  if (cam.x < w.x) pushPoly(out, ctx, [[w.x, w.y + w.h, 0], [w.x, w.y, 0], [w.x, w.y, h], [w.x, w.y + w.h, h]], WALL_E, 3.5)
-  // end caps
-  if (w.w >= w.h) {
-    if (cam.x > w.x + w.w) pushPoly(out, ctx, [[w.x + w.w, w.y, 0], [w.x + w.w, w.y + w.h, 0], [w.x + w.w, w.y + w.h, h], [w.x + w.w, w.y, h]], WALL_E, 3)
-    if (cam.x < w.x) pushPoly(out, ctx, [[w.x, w.y + w.h, 0], [w.x, w.y, 0], [w.x, w.y, h], [w.x, w.y + w.h, h]], WALL_E, 3)
-  } else {
-    if (cam.y > w.y + w.h) pushPoly(out, ctx, [[w.x, w.y + w.h, 0], [w.x + w.w, w.y + w.h, 0], [w.x + w.w, w.y + w.h, h], [w.x, w.y + w.h, h]], WALL_E, 3)
-    if (cam.y < w.y) pushPoly(out, ctx, [[w.x + w.w, w.y, 0], [w.x, w.y, 0], [w.x, w.y, h], [w.x + w.w, w.y, h]], WALL_E, 3)
+  const horizontal = w.w >= w.h
+  const len = horizontal ? w.w : w.h
+  // long walls get chopped into ~220px segments — painter's sort on a
+  // 1600px wall is meaningless at its ends, so each piece sorts locally
+  const segs = Math.max(1, Math.round(len / 220))
+  for (let i = 0; i < segs; i++) {
+    const t0 = i / segs, t1 = (i + 1) / segs
+    const seg: Rect = horizontal
+      ? { x: w.x + w.w * t0, y: w.y, w: w.w * (t1 - t0), h: w.h }
+      : { x: w.x, y: w.y + w.h * t0, w: w.w, h: w.h * (t1 - t0) }
+    // top face
+    pushPoly(out, ctx, [[seg.x, seg.y, h], [seg.x + seg.w, seg.y, h], [seg.x + seg.w, seg.y + seg.h, h], [seg.x, seg.y + seg.h, h]], WALL_TOP, 3.5)
+    // the long side face(s) facing the camera
+    if (cam.y > w.y + w.h) pushPoly(out, ctx, [[seg.x, seg.y + seg.h, 0], [seg.x + seg.w, seg.y + seg.h, 0], [seg.x + seg.w, seg.y + seg.h, h], [seg.x, seg.y + seg.h, h]], WALL_S, 3.5)
+    if (cam.y < w.y) pushPoly(out, ctx, [[seg.x + seg.w, seg.y, 0], [seg.x, seg.y, 0], [seg.x, seg.y, h], [seg.x + seg.w, seg.y, h]], WALL_S, 3.5)
+    // end caps — only on the real ends of the full wall, not internal joints
+    if (horizontal) {
+      if (i === segs - 1 && cam.x > w.x + w.w) pushPoly(out, ctx, [[w.x + w.w, w.y, 0], [w.x + w.w, w.y + w.h, 0], [w.x + w.w, w.y + w.h, h], [w.x + w.w, w.y, h]], WALL_E, 3)
+      if (i === 0 && cam.x < w.x) pushPoly(out, ctx, [[w.x, w.y + w.h, 0], [w.x, w.y, 0], [w.x, w.y, h], [w.x, w.y + w.h, h]], WALL_E, 3)
+    } else {
+      if (i === segs - 1 && cam.y > w.y + w.h) pushPoly(out, ctx, [[w.x, w.y + w.h, 0], [w.x + w.w, w.y + w.h, 0], [w.x + w.w, w.y + w.h, h], [w.x, w.y + w.h, h]], WALL_E, 3)
+      if (i === 0 && cam.y < w.y) pushPoly(out, ctx, [[w.x + w.w, w.y, 0], [w.x, w.y, 0], [w.x, w.y, h], [w.x + w.w, w.y, h]], WALL_E, 3)
+    }
   }
   // windows on south faces that face the camera
   for (const win of WINDOWS) {
