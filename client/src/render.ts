@@ -175,9 +175,16 @@ function drawWall(ctx: CanvasRenderingContext2D, out: Drawable[], w: Rect, h: nu
       : { x: w.x, y: w.y + w.h * t0, w: w.w, h: w.h * (t1 - t0) }
     // top face
     pushPoly(out, ctx, [[seg.x, seg.y, h], [seg.x + seg.w, seg.y, h], [seg.x + seg.w, seg.y + seg.h, h], [seg.x, seg.y + seg.h, h]], WALL_TOP, 3.5)
-    // the long side face(s) facing the camera
-    if (cam.y > w.y + w.h) pushPoly(out, ctx, [[seg.x, seg.y + seg.h, 0], [seg.x + seg.w, seg.y + seg.h, 0], [seg.x + seg.w, seg.y + seg.h, h], [seg.x, seg.y + seg.h, h]], WALL_S, 3.5)
-    if (cam.y < w.y) pushPoly(out, ctx, [[seg.x + seg.w, seg.y, 0], [seg.x, seg.y, 0], [seg.x, seg.y, h], [seg.x + seg.w, seg.y, h]], WALL_S, 3.5)
+    // exactly one long side face — picked by which side of the wall's
+    // centreline the camera is on, so a camera parked inside the wall's
+    // thickness never leaves a floating ribbon
+    if (horizontal) {
+      if (cam.y > w.y + w.h / 2) pushPoly(out, ctx, [[seg.x, seg.y + seg.h, 0], [seg.x + seg.w, seg.y + seg.h, 0], [seg.x + seg.w, seg.y + seg.h, h], [seg.x, seg.y + seg.h, h]], WALL_S, 3.5)
+      else pushPoly(out, ctx, [[seg.x + seg.w, seg.y, 0], [seg.x, seg.y, 0], [seg.x, seg.y, h], [seg.x + seg.w, seg.y, h]], WALL_S, 3.5)
+    } else {
+      if (cam.x > w.x + w.w / 2) pushPoly(out, ctx, [[seg.x + seg.w, seg.y, 0], [seg.x + seg.w, seg.y + seg.h, 0], [seg.x + seg.w, seg.y + seg.h, h], [seg.x + seg.w, seg.y, h]], WALL_E, 3.5)
+      else pushPoly(out, ctx, [[seg.x, seg.y + seg.h, 0], [seg.x, seg.y, 0], [seg.x, seg.y, h], [seg.x, seg.y + seg.h, h]], WALL_E, 3.5)
+    }
     // end caps — only on the real ends of the full wall, not internal joints
     if (horizontal) {
       if (i === segs - 1 && cam.x > w.x + w.w) pushPoly(out, ctx, [[w.x + w.w, w.y, 0], [w.x + w.w, w.y + w.h, 0], [w.x + w.w, w.y + w.h, h], [w.x + w.w, w.y, h]], WALL_E, 3)
