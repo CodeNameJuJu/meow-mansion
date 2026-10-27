@@ -4,7 +4,7 @@ import { Socket } from './net'
 import { initInput, setChatOpen, moveVector } from './input'
 import { spawn, updateFx } from './effects'
 import { cam, unproject } from './cam'
-import { collide, roomAt, furnitureAt, nearestInteractable, OBJECT_BY_ID, type InteractTarget } from './house'
+import { collide, roomAt, furnitureAt, nearestInteractable, OBJECT_BY_ID, WALLS, inRect, type InteractTarget } from './house'
 import { render, type RenderCat } from './render'
 import { captionBox, INK } from './comic'
 import { showCustomize, hideCustomize, setStatus } from './customize'
@@ -346,8 +346,19 @@ function update(dt: number) {
   cam.focal = vw
   cam.cx0 = vw / 2
   cam.hor = vh * 0.40
-  cam.x = me.x - Math.cos(cam.yaw) * cam.dist
-  cam.y = me.y - Math.sin(cam.yaw) * cam.dist
+  // camera collision — pull the camera in so a wall never sits between
+  // it and the cat
+  const bx = -Math.cos(cam.yaw), by = -Math.sin(cam.yaw)
+  const mx = me.x, my = me.y
+  let d = cam.dist
+  for (let t = 20; t < cam.dist; t += 8) {
+    if (WALLS.some((w) => inRect(w, mx + bx * t, my + by * t))) {
+      d = Math.max(60, t - 14)
+      break
+    }
+  }
+  cam.x = me.x + bx * d
+  cam.y = me.y + by * d
 
   updateFx(dt, catPos)
 }
