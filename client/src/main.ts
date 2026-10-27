@@ -3,8 +3,8 @@
 import { Socket } from './net'
 import { initInput, setChatOpen, moveVector } from './input'
 import { spawn, updateFx } from './effects'
-import { iso, unIso } from './iso'
-import { WORLD, collide, roomAt, furnitureAt, nearestInteractable, OBJECT_BY_ID, type InteractTarget } from './house'
+import { cam, unproject } from './cam'
+import { collide, roomAt, furnitureAt, nearestInteractable, OBJECT_BY_ID, type InteractTarget } from './house'
 import { render, type RenderCat } from './render'
 import { captionBox, INK } from './comic'
 import { showCustomize, hideCustomize, setStatus } from './customize'
@@ -43,7 +43,6 @@ const zoomUntil = new Map<string, number>() // per-cat zoomies expiry (incl me)
 
 let playing = false
 let time = 0
-let cam = { x: 0, y: 0 }
 let caption = { text: '', t: 99 }
 let currentRoom = ''
 let interactTarget: InteractTarget | null = null
@@ -216,7 +215,9 @@ canvas.addEventListener('mousedown', (e) => {
 })
 
 function mouseWorld() {
-  return unIso(mouse.x + cam.x, mouse.y + cam.y)
+  // unproject the cursor onto the floor; above the horizon, aim far ahead
+  return unproject(mouse.x, mouse.y)
+    ?? { x: cam.x + Math.cos(cam.yaw) * 400, y: cam.y + Math.sin(cam.yaw) * 400 }
 }
 
 // -------------------------------------------------------- interactions ---
@@ -258,7 +259,12 @@ function interact() {
 
 function update(dt: number) {
   if (!playing || !me) return
-  const { dx, dy } = moveVector()
+  // WASD is camera-relative: W walks forward along the camera's facing
+  const m = moveVector()
+  const fwd = -m.dy, strafe = m.dx
+  const cs = Math.cos(cam.yaw), sn = Math.sin(cam.yaw)
+  const dx = fwd * cs - strafe * sn
+  const dy = fwd * sn + strafe * cs
   const zooming = time < (zoomUntil.get(myId) ?? 0)
   const speed = zooming ? 300 : 150
   const moving = dx !== 0 || dy !== 0
@@ -326,14 +332,17 @@ function update(dt: number) {
 
   interactTarget = nearestInteractable(me.x, me.y)
 
-  // camera follows in iso space, clamped to the projected world bounds
-  const p = iso(me.x, me.y)
-  const minSX = iso(0, WORLD.h).sx - 80
-  const maxSX = iso(WORLD.w, 0).sx + 80
-  const minSY = -120
-  const maxSY = iso(WORLD.w, WORLD.h).sy + 80
-  cam.x = maxSX - minSX <= vw ? (minSX + maxSX - vw) / 2 : Math.min(maxSX - vw, Math.max(minSX, p.sx - vw / 2))
-  cam.y = maxSY - minSY <= vh ? (minSY + maxSY - vh) / 2 : Math.min(maxSY - vh, Math.max(minSY, p.sy - vh * 0.55))
+  // camera rides low behind the cat, yawing to match its facing
+  const FA: Record<Facing, number> = { right: 0, down: Math.PI / 2, left: Math.PI, up: -Math.PI / 2 }
+  let dyaw = FA[me.facing] - cam.yaw
+  while (dyaw > Math.PI) dyaw -= Math.PI * 2
+  while (dyaw < -Math.PI) dyaw += Math.PI * 2
+  cam.yaw += dyaw * Math.min(1, dt * 4)
+  cam.focal = vw * 0.95
+  cam.cx0 = vw / 2
+  cam.hor = vh * 0.36
+  cam.x = me.x - Math.cos(cam.yaw) * cam.dist
+  cam.y = me.y - Math.sin(cam.yaw) * cam.dist
 
   updateFx(dt, catPos)
 }
@@ -347,9 +356,6 @@ function draw() {
   ctx.fillRect(0, 0, vw, vh)
 
   if (!playing || !me) return
-
-  ctx.save()
-  ctx.translate(-cam.x, -cam.y)
 
   const cats: RenderCat[] = [me, ...remotes.values()].map((c) => ({
     id: c.id, name: c.name, cat: c.cat,
@@ -366,7 +372,6 @@ function draw() {
     time, nearBirdbath,
     interact: interactTarget, myId,
   })
-  ctx.restore()
 
   // comic panel frame
   ctx.strokeStyle = INK; ctx.lineWidth = 10
