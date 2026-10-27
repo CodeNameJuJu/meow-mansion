@@ -47,6 +47,9 @@ const setChaos = (v: number) => {
   const el = document.getElementById('chaos')
   if (el) el.textContent = `⚡${v}`
 }
+const updateHudCats = () => {
+  hudroom.textContent = `${roomName} · ${remotes.size + 1} cat${remotes.size ? 's' : ''}`
+}
 const zoomUntil = new Map<string, number>() // per-cat zoomies expiry (incl me)
 
 let playing = false
@@ -79,19 +82,19 @@ function handle(msg: ServerMsg) {
       playing = true
       hideCustomize()
       caption = { text: 'MEOW MANSION', t: 0 }
-      hudroom.textContent = `${msg.room} · ${remotes.size + 1} cat${remotes.size ? 's' : ''}`
+      updateHudCats()
       sfx.pop()
       break
     }
     case 'join': {
       remotes.set(msg.player.id, { ...msg.player, tx: msg.player.x, ty: msg.player.y, phase: Math.random() * 10 })
-      hudroom.textContent = `${roomName} · ${remotes.size + 1} cats`
+      updateHudCats()
       spawn('burst', msg.player.x, msg.player.y, { text: 'A NEW CAT!', ttl: 1.4, oy: -30 })
       break
     }
     case 'leave': {
       remotes.delete(msg.id); lasers.delete(msg.id); zoomUntil.delete(msg.id)
-      hudroom.textContent = `${roomName} · ${remotes.size + 1} cat${remotes.size === 1 ? '' : 's'}`
+      updateHudCats()
       break
     }
     case 'pos': {
@@ -141,7 +144,7 @@ function handle(msg: ServerMsg) {
     case 'squeak':
       mouse = null
       spawn('burst', msg.x, msg.y, { text: 'SQUEAK!', ttl: 0.9, oy: -30 })
-      sfx.hiss()
+      sfx.squeak()
       break
     case 'chaos': chaos = msg.v; setChaos(chaos); break
     case 'err': setStatus(msg.msg); break
@@ -188,6 +191,7 @@ showCustomize(({ name, room, cat }) => {
 // -------------------------------------------------------------- input ----
 
 function openChat() {
+  document.exitPointerLock() // cursor back for typing
   setChatOpen(true)
   chatbox.hidden = false
   chatbox.value = ''
@@ -243,6 +247,12 @@ canvas.addEventListener('click', () => {
 })
 canvas.addEventListener('wheel', (e) => {
   cam.dist = Math.min(420, Math.max(120, cam.dist + e.deltaY * 0.35))
+})
+window.addEventListener('keydown', (e) => {
+  if ((e.key === 'm' || e.key === 'M') && playing && document.activeElement !== chatbox) {
+    sfx.muted = !sfx.muted
+    if (me) spawn('burst', me.x, me.y, { text: sfx.muted ? 'MUTED' : 'UNMUTED', ttl: 0.7, oy: -44 })
+  }
 })
 canvas.addEventListener('mousedown', (e) => {
   // clicking while laser mode is off = a casual paw tap toward that spot? keep it: pet?

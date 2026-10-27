@@ -3,6 +3,7 @@
 let ac: AudioContext | null = null
 
 function ctx(): AudioContext | null {
+  if (sfx.muted) return null
   try {
     ac ??= new AudioContext()
     if (ac.state === 'suspended') ac.resume()
@@ -20,6 +21,21 @@ function tone(fn: (a: AudioContext, g: GainNode) => OscillatorNode[], vol = 0.08
 }
 
 export const sfx = {
+  muted: false,
+  squeak() {
+    tone((a, g) => {
+      const o = a.createOscillator()
+      o.type = 'square'
+      const t = a.currentTime
+      o.frequency.setValueAtTime(2200, t)
+      o.frequency.linearRampToValueAtTime(3000, t + 0.05)
+      o.frequency.linearRampToValueAtTime(1600, t + 0.14)
+      g.gain.setValueAtTime(0.05, t)
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.16)
+      o.start(); o.stop(t + 0.18)
+      return [o]
+    }, 0.05)
+  },
   meow() {
     tone((a, g) => {
       const o = a.createOscillator()
