@@ -85,8 +85,8 @@ export const FURNITURE: Furniture[] = [
   { id: 'counter', kind: 'counter', label: 'the counter', rect: { x: 170, y: 80, w: 350, h: 50 }, h: 50, solid: true },
   { id: 'stove', kind: 'stove', label: 'the stove', rect: { x: 310, y: 84, w: 100, h: 42 }, h: 8, z: 50, solid: true, interact: 'stove', prompt: 'touch the stove (bad idea)' },
   { id: 'table', kind: 'table', label: 'the table', rect: { x: 300, y: 230, w: 150, h: 90 }, h: 42, solid: false, walkable: true },
-  { id: 'bowl1', kind: 'bowl', label: 'the food bowl', rect: { x: 96, y: 358, w: 38, h: 28 }, h: 8, solid: false, interact: 'eat', prompt: 'have a snack' },
-  { id: 'bowl2', kind: 'bowl', label: 'the other bowl', rect: { x: 146, y: 358, w: 38, h: 28 }, h: 8, solid: false, interact: 'eat', prompt: 'have a snack' },
+  { id: 'bowl1', kind: 'bowl', label: 'the food bowl', rect: { x: 96, y: 300, w: 38, h: 28 }, h: 8, solid: false, interact: 'eat', prompt: 'have a snack' },
+  { id: 'bowl2', kind: 'bowl', label: 'the other bowl', rect: { x: 146, y: 300, w: 38, h: 28 }, h: 8, solid: false, interact: 'eat', prompt: 'have a snack' },
 
   // bedroom
   { id: 'bed', kind: 'bed', label: 'the bed', rect: { x: 1300, y: 90, w: 270, h: 170 }, h: 28, solid: false, walkable: true, autoPose: 'sleep' },
@@ -127,7 +127,7 @@ export const OBJECTS: WorldObject[] = [
   { id: 'frame1', x: 890, y: 102, z: 60, kind: 'frame' },
   { id: 'books1', x: 862, y: 494, z: 70, kind: 'books' },
   { id: 'mug1', x: 1128, y: 576, z: 30, kind: 'mug' },
-  { id: 'tp', x: 262, y: 480, z: 45, kind: 'tp' },
+  { id: 'tp', x: 207, y: 482, z: 52, kind: 'tp' },
   // toggles (drawn but not knockable)
   { id: 'lamp1', x: 1245, y: 108, z: 45, kind: 'lamp' },
   { id: 'tv1', x: 1125, y: 507, z: 0, kind: 'tvscreen' },
