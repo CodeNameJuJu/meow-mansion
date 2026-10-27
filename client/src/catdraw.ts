@@ -26,6 +26,21 @@ function tail(ctx: CanvasRenderingContext2D, color: string, x0: number, y0: numb
   ctx.fillStyle = color; ctx.fill()
 }
 
+// seen from behind, the tail trails away on the floor — it hangs down past
+// the feet rather than curling up over the head
+function tailBack(ctx: CanvasRenderingContext2D, color: string, phase: number) {
+  const tipX = wag(phase, 12)
+  const tipY = 38 + wag(phase, 3)
+  ctx.beginPath()
+  ctx.moveTo(0, 10)
+  ctx.quadraticCurveTo(tipX * 0.4, 30, tipX, tipY)
+  ctx.lineWidth = 13; ctx.strokeStyle = INK; ctx.lineCap = 'round'; ctx.stroke()
+  ctx.lineWidth = 8; ctx.strokeStyle = color; ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(tipX, tipY, 7, 0, Math.PI * 2)
+  ctx.fillStyle = color; ctx.fill()
+}
+
 function bodyPattern(ctx: CanvasRenderingContext2D, cat: CatCustom, cx: number, cy: number, rx: number, ry: number) {
   const dark = shade(cat.color, -55)
   ctx.save()
@@ -51,20 +66,22 @@ function bodyPattern(ctx: CanvasRenderingContext2D, cat: CatCustom, cx: number, 
   ctx.restore()
 }
 
-function ear(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, color: string) {
+function ear(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, color: string, inner = true) {
   ctx.beginPath()
   ctx.moveTo(x - 8 * dir, y + 5)
   ctx.lineTo(x + 1 * dir, y - 14)
   ctx.lineTo(x + 9 * dir, y + 4)
   ctx.closePath()
   fillStroke(ctx, color, 3.5)
-  ctx.beginPath()
-  ctx.moveTo(x - 4 * dir, y + 3)
-  ctx.lineTo(x + 1 * dir, y - 9)
-  ctx.lineTo(x + 5 * dir, y + 2)
-  ctx.closePath()
-  ctx.fillStyle = '#f2a0b0'
-  ctx.fill()
+  if (inner) {
+    ctx.beginPath()
+    ctx.moveTo(x - 4 * dir, y + 3)
+    ctx.lineTo(x + 1 * dir, y - 9)
+    ctx.lineTo(x + 5 * dir, y + 2)
+    ctx.closePath()
+    ctx.fillStyle = '#f2a0b0'
+    ctx.fill()
+  }
 }
 
 function eyes(ctx: CanvasRenderingContext2D, x: number, y: number, dx: number, blink: boolean, asleep: boolean) {
@@ -170,7 +187,8 @@ export function drawCat(ctx: CanvasRenderingContext2D, x: number, y: number, cat
     // ---- front / back view ------------------------------------------
     const sit = pose === 'sit'
     const bw = sit ? 17 : 15, bh = sit ? 21 : 19
-    tail(ctx, cat.color, 0, facing === 'down' ? 14 : -2, phase, true)
+    if (facing === 'down') tail(ctx, cat.color, 0, 14, phase, true)
+    else tailBack(ctx, cat.color, phase)
     if (facing === 'down') {
       // body below head
       ellipse(ctx, 0, 6, bw, bh)
@@ -187,8 +205,8 @@ export function drawCat(ctx: CanvasRenderingContext2D, x: number, y: number, cat
     const headY = pose === 'eat' ? hy + 7 : hy
     ctx.beginPath(); ctx.arc(0, headY, 15, 0, Math.PI * 2)
     fillStroke(ctx, cat.color, 4)
-    ear(ctx, -9, headY - 12, -1, cat.color)
-    ear(ctx, 9, headY - 12, 1, cat.color)
+    ear(ctx, -9, headY - 12, -1, cat.color, facing !== 'up')
+    ear(ctx, 9, headY - 12, 1, cat.color, facing !== 'up')
     if (cat.pattern === 'tabby') {
       ctx.strokeStyle = dark; ctx.lineWidth = 2.6
       for (const s of [-1, 0, 1]) {
