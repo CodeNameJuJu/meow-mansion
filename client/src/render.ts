@@ -295,15 +295,15 @@ function drawFurniture(ctx: CanvasRenderingContext2D, out: Drawable[], f: Furnit
       box(out, ctx, r, 30, 0, WOOD)
       const tv = { x: r.x + 10, y: r.y + 4, w: r.w - 20, h: r.h - 8 }
       box(out, ctx, tv, 62, 30, { top: '#3a3a40', s: '#26262c', e: '#1c1c22' })
-      // the screen is on the tv's south (room-facing) side only
-      if (faceVisible(tv, 's')) {
-        faceRect(out, ctx, tv, 's', 0.08, 0.92, 36, 86, '#0e0e12')
+      // the screen faces the couch — north now that they swapped places
+      if (faceVisible(tv, 'n')) {
+        faceRect(out, ctx, tv, 'n', 0.08, 0.92, 36, 86, '#0e0e12')
         if (s.toggles.tv1) {
           const g = 0.5 + 0.5 * Math.sin(s.time * 9)
-          faceRect(out, ctx, tv, 's', 0.1, 0.9, 38, 84, `rgb(${40 + g * 40},${60 + g * 50},${90 + g * 60})`)
+          faceRect(out, ctx, tv, 'n', 0.1, 0.9, 38, 84, `rgb(${40 + g * 40},${60 + g * 50},${90 + g * 60})`)
           for (let i = 0; i < 4; i++) {
             const u0 = 0.15 + ((i * 0.37 + s.time * 2.1) % 0.7)
-            faceRect(out, ctx, tv, 's', u0, u0 + 0.08, 44 + ((i * 17) % 30), 50 + ((i * 17) % 30), 'rgba(255,255,255,0.5)')
+            faceRect(out, ctx, tv, 'n', u0, u0 + 0.08, 44 + ((i * 17) % 30), 50 + ((i * 17) % 30), 'rgba(255,255,255,0.5)')
           }
         }
       }

@@ -106,8 +106,8 @@ export const FURNITURE: Furniture[] = [
   { id: 'birdbath', kind: 'birdbath', label: 'the birdbath', rect: { x: 330, y: 810, w: 44, h: 40 }, h: 40, solid: true, interact: 'splash', prompt: 'splash the birdbath' },
 
   // living room
-  { id: 'tvstand', kind: 'tvstand', label: 'the TV', rect: { x: 1040, y: 495, w: 170, h: 55 }, h: 45, solid: true, interact: 'tv', prompt: 'flick the TV' },
-  { id: 'couch', kind: 'couch', label: 'the couch', rect: { x: 990, y: 830, w: 290, h: 85 }, h: 30, solid: false, walkable: true, autoPose: 'sit', interact: 'scratch', prompt: 'shred the couch' },
+  { id: 'tvstand', kind: 'tvstand', label: 'the TV', rect: { x: 1040, y: 830, w: 170, h: 55 }, h: 45, solid: true, interact: 'tv', prompt: 'flick the TV' },
+  { id: 'couch', kind: 'couch', label: 'the couch', rect: { x: 990, y: 495, w: 290, h: 85 }, h: 30, solid: false, walkable: true, autoPose: 'sit', interact: 'scratch', prompt: 'shred the couch' },
   { id: 'coffeetable', kind: 'coffeetable', label: 'the coffee table', rect: { x: 1040, y: 700, w: 190, h: 45 }, h: 30, solid: false, walkable: true },
   { id: 'bookshelf', kind: 'bookshelf', label: 'the bookshelf', rect: { x: 780, y: 545, w: 200, h: 55 }, h: 70, solid: true },
   { id: 'post', kind: 'post', label: 'the scratching post', rect: { x: 1480, y: 950, w: 55, h: 55 }, h: 55, solid: true, interact: 'scratchgood', prompt: 'scratch (legally)' },
@@ -130,7 +130,7 @@ export const OBJECTS: WorldObject[] = [
   { id: 'tp', x: 250, y: 540, z: 0, kind: 'tp' },
   // toggles (drawn but not knockable)
   { id: 'lamp1', x: 1245, y: 128, z: 45, kind: 'lamp' },
-  { id: 'tv1', x: 1125, y: 507, z: 0, kind: 'tvscreen' },
+  { id: 'tv1', x: 1125, y: 845, z: 0, kind: 'tvscreen' },
 ]
 export const OBJECT_BY_ID = new Map(OBJECTS.map((o) => [o.id, o]))
 
